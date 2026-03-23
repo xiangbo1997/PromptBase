@@ -1,0 +1,353 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum OrgMemberStatus {
+  INVITED
+  ACTIVE
+  SUSPENDED
+}
+
+enum PromptStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
+enum PromptVisibility {
+  PRIVATE
+  ORG
+}
+
+enum TestRunStatus {
+  QUEUED
+  RUNNING
+  SUCCEEDED
+  FAILED
+  CANCELED
+}
+
+enum ImportExportJobType {
+  IMPORT
+  EXPORT
+}
+
+enum ImportExportFormat {
+  JSON
+  CSV
+  MARKDOWN
+}
+
+enum JobStatus {
+  QUEUED
+  RUNNING
+  SUCCEEDED
+  FAILED
+  CANCELED
+}
+
+model User {
+  id                   String            @id @default(uuid()) @db.Uuid
+  email                String            @unique
+  displayName          String?
+  avatarUrl            String?
+  passwordHash         String?
+  isActive             Boolean           @default(true)
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+  memberships          OrgMember[]
+  createdOrganizations Organization[]    @relation("OrganizationCreatedBy")
+  createdFolders       Folder[]          @relation("FolderCreatedBy")
+  createdPrompts       Prompt[]          @relation("PromptCreatedBy")
+  updatedPrompts       Prompt[]          @relation("PromptUpdatedBy")
+  promptVersions       PromptVersion[]   @relation("PromptVersionCreatedBy")
+  favorites            Favorite[]
+  pins                 Pin[]
+  requestedTestRuns    TestRun[]         @relation("TestRunRequestedBy")
+  auditLogs            AuditLog[]        @relation("AuditLogActor")
+  importExportJobs     ImportExportJob[] @relation("ImportExportJobRequestedBy")
+}
+
+model Organization {
+  id                 String              @id @default(uuid()) @db.Uuid
+  slug               String              @unique
+  name               String
+  description        String?
+  createdById        String?             @db.Uuid
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  createdBy          User?               @relation("OrganizationCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  members            OrgMember[]
+  roles              Role[]
+  folders            Folder[]
+  tags               Tag[]
+  prompts            Prompt[]
+  promptVersions     PromptVersion[]
+  promptTagRelations PromptTagRelation[]
+  favorites          Favorite[]
+  pins               Pin[]
+  testRuns           TestRun[]
+  auditLogs          AuditLog[]
+  importExportJobs   ImportExportJob[]
+  modelProviders     ModelProvider[]
+}
+
+model ModelProvider {
+  id           String       @id @default(uuid()) @db.Uuid
+  orgId        String       @db.Uuid
+  name         String
+  provider     String
+  apiKey       String
+  baseUrl      String?
+  models       Json         @default("[]")
+  isActive     Boolean      @default(true)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@unique([orgId, name])
+  @@index([orgId, provider])
+  @@index([orgId, isActive])
+}
+
+model Role {
+  id           String       @id @default(uuid()) @db.Uuid
+  orgId        String       @db.Uuid
+  key          String
+  name         String
+  description  String?
+  permissions  Json
+  isSystem     Boolean      @default(false)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  members      OrgMember[]
+
+  @@unique([orgId, key])
+  @@index([orgId])
+}
+
+model OrgMember {
+  id           String          @id @default(uuid()) @db.Uuid
+  orgId        String          @db.Uuid
+  userId       String          @db.Uuid
+  roleId       String          @db.Uuid
+  status       OrgMemberStatus @default(ACTIVE)
+  joinedAt     DateTime?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  organization Organization    @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  user         User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role         Role            @relation(fields: [roleId], references: [id], onDelete: Restrict)
+
+  @@unique([orgId, userId])
+  @@index([orgId, roleId])
+}
+
+model Folder {
+  id               String       @id @default(uuid()) @db.Uuid
+  orgId            String       @db.Uuid
+  parentId         String?      @db.Uuid
+  name             String
+  description      String?
+  materializedPath String
+  createdById      String?      @db.Uuid
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+  organization     Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  parent           Folder?      @relation("FolderChildren", fields: [parentId], references: [id], onDelete: SetNull)
+  children         Folder[]     @relation("FolderChildren")
+  createdBy        User?        @relation("FolderCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  prompts          Prompt[]
+
+  @@unique([orgId, materializedPath])
+  @@index([orgId, parentId])
+  @@index([orgId, name])
+}
+
+model Tag {
+  id              String              @id @default(uuid()) @db.Uuid
+  orgId           String              @db.Uuid
+  name            String
+  slug            String
+  color           String?
+  description     String?
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  organization    Organization        @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  promptRelations PromptTagRelation[]
+
+  @@unique([orgId, slug])
+  @@index([orgId, name])
+}
+
+model Prompt {
+  id               String              @id @default(uuid()) @db.Uuid
+  orgId            String              @db.Uuid
+  folderId         String?             @db.Uuid
+  currentVersionId String?             @db.Uuid
+  title            String
+  description      String?
+  summary          String?
+  status           PromptStatus        @default(DRAFT)
+  visibility       PromptVisibility    @default(ORG)
+  isTemplate       Boolean             @default(false)
+  isArchived       Boolean             @default(false)
+  variables        Json?
+  createdById      String              @db.Uuid
+  updatedById      String?             @db.Uuid
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+  organization     Organization        @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  folder           Folder?             @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  currentVersion   PromptVersion?      @relation("PromptCurrentVersion", fields: [currentVersionId], references: [id], onDelete: SetNull)
+  versions         PromptVersion[]     @relation("PromptVersions")
+  tagRelations     PromptTagRelation[]
+  favorites        Favorite[]
+  pins             Pin[]
+  testRuns         TestRun[]
+  createdBy        User                @relation("PromptCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  updatedBy        User?               @relation("PromptUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+
+  @@index([orgId, folderId])
+  @@index([orgId, status, isArchived])
+  @@index([orgId, title])
+}
+
+model PromptVersion {
+  id                String       @id @default(uuid()) @db.Uuid
+  orgId             String       @db.Uuid
+  promptId          String       @db.Uuid
+  versionNumber     Int
+  title             String
+  content           String       @db.Text
+  snapshot          Json
+  variables         Json?
+  checksum          String?
+  changeSummary     String?
+  createdById       String       @db.Uuid
+  createdAt         DateTime     @default(now())
+  organization      Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  prompt            Prompt       @relation("PromptVersions", fields: [promptId], references: [id], onDelete: Cascade)
+  currentForPrompts Prompt[]     @relation("PromptCurrentVersion")
+  testRuns          TestRun[]
+  createdBy         User         @relation("PromptVersionCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+
+  @@unique([promptId, versionNumber])
+  @@index([orgId, promptId, createdAt])
+}
+
+model PromptTagRelation {
+  id           String       @id @default(uuid()) @db.Uuid
+  orgId        String       @db.Uuid
+  promptId     String       @db.Uuid
+  tagId        String       @db.Uuid
+  createdAt    DateTime     @default(now())
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  prompt       Prompt       @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  tag          Tag          @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([promptId, tagId])
+  @@index([orgId, tagId])
+}
+
+model Favorite {
+  id           String       @id @default(uuid()) @db.Uuid
+  orgId        String       @db.Uuid
+  userId       String       @db.Uuid
+  promptId     String       @db.Uuid
+  createdAt    DateTime     @default(now())
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  prompt       Prompt       @relation(fields: [promptId], references: [id], onDelete: Cascade)
+
+  @@unique([orgId, userId, promptId])
+  @@index([orgId, userId])
+}
+
+model Pin {
+  id           String       @id @default(uuid()) @db.Uuid
+  orgId        String       @db.Uuid
+  userId       String       @db.Uuid
+  promptId     String       @db.Uuid
+  orderIndex   Int          @default(0)
+  createdAt    DateTime     @default(now())
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  prompt       Prompt       @relation(fields: [promptId], references: [id], onDelete: Cascade)
+
+  @@unique([orgId, userId, promptId])
+  @@index([orgId, userId, orderIndex])
+}
+
+model TestRun {
+  id              String        @id @default(uuid()) @db.Uuid
+  orgId           String        @db.Uuid
+  promptId        String        @db.Uuid
+  promptVersionId String        @db.Uuid
+  requestedById   String        @db.Uuid
+  provider        String
+  model           String
+  status          TestRunStatus @default(QUEUED)
+  input           Json
+  output          Json?
+  metrics         Json?
+  errorMessage    String?
+  startedAt       DateTime?
+  completedAt     DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  organization    Organization  @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  prompt          Prompt        @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  promptVersion   PromptVersion @relation(fields: [promptVersionId], references: [id], onDelete: Cascade)
+  requestedBy     User          @relation("TestRunRequestedBy", fields: [requestedById], references: [id], onDelete: Restrict)
+
+  @@index([orgId, status, createdAt])
+  @@index([orgId, promptId])
+}
+
+model AuditLog {
+  id           String       @id @default(uuid()) @db.Uuid
+  orgId        String       @db.Uuid
+  actorId      String?      @db.Uuid
+  entityType   String
+  entityId     String       @db.Uuid
+  action       String
+  before       Json?
+  after        Json?
+  metadata     Json?
+  createdAt    DateTime     @default(now())
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  actor        User?        @relation("AuditLogActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([orgId, entityType, entityId])
+  @@index([orgId, createdAt])
+}
+
+model ImportExportJob {
+  id            String             @id @default(uuid()) @db.Uuid
+  orgId         String             @db.Uuid
+  requestedById String             @db.Uuid
+  type          ImportExportJobType
+  format        ImportExportFormat
+  status        JobStatus          @default(QUEUED)
+  sourceUri     String?
+  targetUri     String?
+  errorMessage  String?
+  options       Json?
+  summary       Json?
+  startedAt     DateTime?
+  completedAt   DateTime?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  organization  Organization       @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  requestedBy   User               @relation("ImportExportJobRequestedBy", fields: [requestedById], references: [id], onDelete: Restrict)
+
+  @@index([orgId, type, status])
+  @@index([orgId, createdAt])
+}
