@@ -14,6 +14,7 @@ function parseBullConnection(redisUrl: string) {
   };
 }
 import { AuthModule } from './auth/auth.module';
+import { AssistantModule } from './assistant/assistant.module';
 import { FavoriteModule } from './favorite/favorite.module';
 import { FolderModule } from './folder/folder.module';
 import { ModelProviderModule } from './model-provider/model-provider.module';
@@ -41,6 +42,7 @@ import { HealthModule } from './health/health.module';
     PrismaModule,
     RedisModule,
     AuthModule,
+    AssistantModule,
     OrgModule,
     PromptModule,
     FolderModule,

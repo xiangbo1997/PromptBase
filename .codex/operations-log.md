@@ -1,0 +1,44 @@
+## Operations Log
+
+### 2026-03-31
+
+- Inspected repository structure, README, workspace scripts, API env example, and runtime entrypoints.
+- Confirmed `.codex` directory was missing and initialized required session artifacts manually.
+- Confirmed deployment-related binaries: `nginx` and `caddy` exist, `pm2` does not.
+- Added container-first deployment assets under `apps/api/Dockerfile`, `apps/web/Dockerfile`, and `deploy/`.
+- Generated local production env file at `deploy/.env.production`.
+- Built and started the production stack with `docker-compose -f deploy/docker-compose.prod.yml up -d --build`.
+- Backed up `/etc/caddy/Caddyfile`, appended the `prompt.feixingqi.shop` site block, validated config, and reloaded Caddy.
+- Added a frontend i18n foundation with locale dictionary, provider, storage-backed locale persistence, and a shared locale switcher.
+- Migrated root layout metadata sync plus auth and shell entry surfaces (`layout`, `header`, `sidebar`, `login`, `register`) to the new i18n layer.
+- Rebuilt the web image and redeployed the running `web` container after removing one stale failed compose container created by the host's legacy `docker-compose`.
+- Completed the remaining dashboard/components i18n migration across search, favorites, prompts, settings pages, prompt utilities, and import/export dialogs.
+- Rebuilt and redeployed the web container again after removing another stale failed compose-created web container caused by the same host `docker-compose 1.29.2` recreate bug.
+- Added two repository docs under `docs/`: a usage/operations guide and a technical architecture document.
+- Updated `README.md` to link the new documentation entry points.
+- Added three more repository docs under `docs/`: API reference, database design, and operations SOP.
+- Updated `README.md` again to expose the new API/database/operations documentation links.
+- Added a lightweight document-driven guide assistant across the stack:
+  - shared request/response types under `packages/shared`
+  - new NestJS `assistant` module with document loading, retrieval, and model-backed answering
+  - dashboard floating assistant UI, hook, and i18n copy in `apps/web`
+  - assistant-related documentation and environment variable examples
+- Reused existing model-provider and adapter infrastructure, and fixed the Anthropic adapter to pass system instructions correctly for assistant prompts.
+- Built new `api` and `web` production images and rolled the guide assistant changes onto the running VPS stack.
+- Worked around the host's legacy `docker-compose 1.29.2` recreate bug for `api` by removing failed compose state and starting the rebuilt `deploy_api:latest` container manually with the production network, port mapping, and resolved environment values.
+- Upgraded the guide assistant into a session-based action assistant that can:
+  - detect `guide`, `create_prompt`, `create_tag`, and `create_folder` intents
+  - collect missing fields across multiple turns
+  - resolve existing tag/folder names in the current organization
+  - ask whether missing tags/folders should be created automatically
+  - execute prompt/tag/folder creation through existing service-layer logic
+  - expose undo for the most recent assistant-created chain
+- Added shared action-assistant session and response types plus new authenticated API routes:
+  - `POST /api/v1/orgs/:orgId/assistant/actions/chat`
+  - `POST /api/v1/orgs/:orgId/assistant/actions/undo`
+- Upgraded the dashboard floating assistant UI to show pending fields, executed results, deep links, and an undo action.
+- Updated repository docs to describe the action assistant capabilities, routes, and user flow.
+- Rebuilt production `api` and `web` images again and rolled the action-assistant version onto the live VPS stack.
+- Worked around the same host `docker-compose 1.29.2` recreate bug during this rollout by:
+  - removing the stale `deploy_web_1` container before recreating `web`
+  - removing the stale `deploy_api_1` container and starting the rebuilt `deploy_api:latest` container manually with the production network and env mapping

@@ -100,6 +100,7 @@ Authorization: Bearer <access_token>
 控制器：
 
 - [org.controller.ts](/software/PromptBase/apps/api/src/org/org.controller.ts)
+- [assistant.controller.ts](/software/PromptBase/apps/api/src/assistant/assistant.controller.ts)
 
 ### `GET /orgs/:orgId`
 
@@ -121,6 +122,95 @@ Authorization: Bearer <access_token>
   "roleKey": "viewer"
 }
 ```
+
+### `POST /orgs/:orgId/assistant/guide`
+
+基于项目文档回答平台相关使用问题。
+
+典型请求：
+
+```json
+{
+  "question": "怎么配置模型提供商？",
+  "pathname": "/settings/models",
+  "locale": "zh-CN",
+  "history": [
+    { "role": "user", "content": "怎么测试模型输出？" },
+    { "role": "assistant", "content": "可以在提示词详情页或 AI 实验室里测试。" }
+  ]
+}
+```
+
+典型返回字段：
+
+- `answer`
+  Markdown 格式回答
+- `citations`
+  文档来源数组，包含标题、章节、文件路径和摘录
+- `inferenceNotes`
+  文档没有直接写明时的推断说明
+- `usedModel`
+  本次回答实际使用的 provider 和 model
+- `fallbackMode`
+  `organization | platform`
+
+### `POST /orgs/:orgId/assistant/actions/chat`
+
+会话式动作助手入口。它会先识别用户意图，再根据当前会话状态继续追问、创建缺失的标签或文件夹，并在字段收齐后自动执行。
+
+典型请求：
+
+```json
+{
+  "sessionId": "7dd0e6c9-7b1a-4de6-8a0a-a706564d43fb",
+  "message": "帮我新建一个提示词，标题叫销售开场白，放到销售文件夹",
+  "pathname": "/prompts",
+  "locale": "zh-CN"
+}
+```
+
+典型返回字段：
+
+- `sessionId`
+  当前助手会话 ID；前端应在后续轮次继续带回
+- `reply`
+  助手当前轮回复
+- `session`
+  当前意图、草稿摘要、待补字段、待确认的缺失资源
+- `executedActions`
+  已执行的创建结果，例如提示词、标签、文件夹
+- `canUndo`
+  当前会话是否允许撤销最近一步
+- `citations`
+  当前回复引用的文档来源；纯动作追问时可能为空
+
+当前支持的动作意图：
+
+- `create_prompt`
+- `create_tag`
+- `create_folder`
+- `guide`
+
+### `POST /orgs/:orgId/assistant/actions/undo`
+
+撤销当前会话里最近一次由助手执行的创建链路。
+
+典型请求：
+
+```json
+{
+  "sessionId": "7dd0e6c9-7b1a-4de6-8a0a-a706564d43fb"
+}
+```
+
+典型返回字段：
+
+- `reply`
+  撤销结果说明
+- `undoneActions`
+  实际被撤销的实体列表，按撤销顺序返回
+- `canUndo`
+  撤销后当前会话是否还存在下一步可撤销项
 
 ## 4. 提示词模块
 

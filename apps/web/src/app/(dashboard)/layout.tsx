@@ -1,6 +1,7 @@
 import { ReactNode } from "react";
 import Sidebar from "@/components/layout/sidebar";
 import Header from "@/components/layout/header";
+import GuideAssistant from "@/components/layout/guide-assistant";
 import { AuthProvider } from "@/components/providers/auth-provider";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
@@ -13,6 +14,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           <main className="flex-1 overflow-y-auto p-6">
             {children}
           </main>
+          <GuideAssistant />
         </div>
       </div>
     </AuthProvider>

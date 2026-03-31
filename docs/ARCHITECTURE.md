@@ -19,6 +19,14 @@ PromptBase 是一个 Turbo monorepo，主要由四部分组成：
 - `packages/ui`
   轻量 UI 工具函数
 
+当前还包含一个“文档驱动 + 动作执行”的助手子能力：
+
+- 前端在 dashboard 中以右下角悬浮助手的形式提供入口
+- 后端通过组织级接口提供问答和动作会话服务
+- 知识源来自仓库内 Markdown 文档，而不是业务数据库
+- 模型来源优先使用组织已配置 provider，必要时回退到平台默认模型
+- 在受控范围内，助手可以代用户创建提示词、标签和文件夹
+
 运行时依赖：
 
 - PostgreSQL
@@ -67,6 +75,7 @@ PromptBase 是一个 Turbo monorepo，主要由四部分组成：
 - [apps/api/src/import-export](/software/PromptBase/apps/api/src/import-export)
 - [apps/api/src/audit-log](/software/PromptBase/apps/api/src/audit-log)
 - [apps/api/src/search](/software/PromptBase/apps/api/src/search)
+- [apps/api/src/assistant](/software/PromptBase/apps/api/src/assistant)
 - [apps/api/src/health](/software/PromptBase/apps/api/src/health)
 - [apps/api/src/prisma](/software/PromptBase/apps/api/src/prisma)
 - [apps/api/src/redis](/software/PromptBase/apps/api/src/redis)
@@ -116,6 +125,7 @@ PromptBase 是一个 Turbo monorepo，主要由四部分组成：
 - [apps/web/src/hooks/use-tags.ts](/software/PromptBase/apps/web/src/hooks/use-tags.ts)
 - [apps/web/src/hooks/use-model-providers.ts](/software/PromptBase/apps/web/src/hooks/use-model-providers.ts)
 - [apps/web/src/hooks/use-test-runs.ts](/software/PromptBase/apps/web/src/hooks/use-test-runs.ts)
+- [apps/web/src/hooks/use-guide-assistant.ts](/software/PromptBase/apps/web/src/hooks/use-guide-assistant.ts)
 
 设计原则很明确：
 
@@ -146,6 +156,7 @@ PromptBase 是一个 Turbo monorepo，主要由四部分组成：
 - [apps/web/src/lib/i18n.ts](/software/PromptBase/apps/web/src/lib/i18n.ts)
 - [apps/web/src/components/providers/i18n-provider.tsx](/software/PromptBase/apps/web/src/components/providers/i18n-provider.tsx)
 - [apps/web/src/components/layout/locale-switcher.tsx](/software/PromptBase/apps/web/src/components/layout/locale-switcher.tsx)
+- [apps/web/src/components/layout/guide-assistant.tsx](/software/PromptBase/apps/web/src/components/layout/guide-assistant.tsx)
 
 实现特点：
 
@@ -228,6 +239,8 @@ PromptBase 是一个 Turbo monorepo，主要由四部分组成：
   审计日志查询和记录
 - `search`
   按关键词、文件夹、标签搜索
+- `assistant`
+  文档加载、轻量检索、模型问答、动作编排、会话状态与撤销回传
 
 ## 4.3 数据访问
 

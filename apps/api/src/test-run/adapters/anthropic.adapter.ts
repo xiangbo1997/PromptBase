@@ -18,6 +18,11 @@ export class AnthropicAdapter implements ModelAdapter {
   ): AsyncGenerator<string, ModelInvocationMetrics, void> {
     const startedAt = Date.now();
     const baseUrl = options.baseUrl ?? 'https://api.anthropic.com/v1';
+    const systemInstruction = messages
+      .filter((message) => message.role === 'system')
+      .map((message) => message.content.trim())
+      .filter((message) => message.length > 0)
+      .join('\n\n');
 
     const response = await fetch(joinBaseUrl(baseUrl, '/messages'), {
       method: 'POST',
@@ -27,14 +32,17 @@ export class AnthropicAdapter implements ModelAdapter {
         ...(options.apiKey ? { 'x-api-key': options.apiKey } : {}),
       },
       body: JSON.stringify({
+        ...(systemInstruction ? { system: systemInstruction } : {}),
         model: options.model,
         max_tokens: options.maxTokens ?? 1024,
         temperature: options.temperature ?? 0.7,
         stream: true,
-        messages: messages.map((m) => ({
-          role: m.role === 'assistant' ? 'assistant' : 'user',
-          content: m.content,
-        })),
+        messages: messages
+          .filter((message) => message.role !== 'system')
+          .map((message) => ({
+            role: message.role === 'assistant' ? 'assistant' : 'user',
+            content: message.content,
+          })),
       }),
       signal: options.signal,
     });

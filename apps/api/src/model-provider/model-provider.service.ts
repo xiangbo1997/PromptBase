@@ -113,6 +113,16 @@ export class ModelProviderService {
     return this.toResolvedProvider(matched);
   }
 
+  async findPreferredAssistantProvider(orgId: string): Promise<ResolvedModelProvider | null> {
+    const providers = await this.prisma.modelProvider.findMany({
+      where: { orgId, isActive: true },
+      orderBy: { updatedAt: 'desc' },
+    });
+
+    const matched = providers.find((item) => this.extractModels(item.models).length > 0);
+    return matched ? this.toResolvedProvider(matched) : null;
+  }
+
   private async findProviderOrThrow(orgId: string, id: string) {
     const provider = await this.prisma.modelProvider.findFirst({ where: { id, orgId } });
     if (!provider) throw new NotFoundException('Model provider not found');
