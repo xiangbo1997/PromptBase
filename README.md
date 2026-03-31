@@ -49,4 +49,7 @@ For production deployment, prefer running the frontend and backend as built serv
 
 - Usage and operations guide: [docs/USAGE_GUIDE.md](/software/PromptBase/docs/USAGE_GUIDE.md)
 - Technical architecture: [docs/ARCHITECTURE.md](/software/PromptBase/docs/ARCHITECTURE.md)
+- API reference: [docs/API_REFERENCE.md](/software/PromptBase/docs/API_REFERENCE.md)
+- Database design: [docs/DATABASE_DESIGN.md](/software/PromptBase/docs/DATABASE_DESIGN.md)
+- Operations SOP: [docs/OPERATIONS_SOP.md](/software/PromptBase/docs/OPERATIONS_SOP.md)
 - Production deployment notes: [deploy/README.md](/software/PromptBase/deploy/README.md)
