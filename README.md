@@ -44,3 +44,9 @@ Default local ports:
 ## Deployment Notes
 
 For production deployment, prefer running the frontend and backend as built services, and use managed PostgreSQL, Redis, and object storage instead of colocating every dependency on a small VPS.
+
+## Documentation
+
+- Usage and operations guide: [docs/USAGE_GUIDE.md](/software/PromptBase/docs/USAGE_GUIDE.md)
+- Technical architecture: [docs/ARCHITECTURE.md](/software/PromptBase/docs/ARCHITECTURE.md)
+- Production deployment notes: [deploy/README.md](/software/PromptBase/deploy/README.md)
