@@ -6,8 +6,10 @@ import { useState } from "react";
 import { Heart, Grid, List as ListIcon, Search } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@promptbase/ui";
+import { useI18n } from "@/components/providers/i18n-provider";
 
 export default function FavoritesPage() {
+  const { t } = useI18n();
   const orgId = useAuthStore((s) => s.orgId) ?? "";
   const { data: favorites, isLoading } = useFavorites(orgId);
   const { mutate: toggleFavorite } = useToggleFavorite(orgId);
@@ -17,14 +19,14 @@ export default function FavoritesPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">我的收藏</h1>
-          <p className="text-muted-foreground">您收藏的所有重要提示词</p>
+          <h1 className="text-3xl font-bold tracking-tight">{t("favoritesPage.title")}</h1>
+          <p className="text-muted-foreground">{t("favoritesPage.subtitle")}</p>
         </div>
       </div>
 
       <div className="flex items-center justify-between">
         <div className="text-sm text-muted-foreground">
-          共收藏 {favorites?.length || 0} 个提示词
+          {t("favoritesPage.totalFavorites", { count: favorites?.length || 0 })}
         </div>
         <div className="flex items-center border rounded-md p-1 bg-muted/50">
           <button
@@ -64,7 +66,7 @@ export default function FavoritesPage() {
                     {prompt.title}
                   </h3>
                   <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
-                    {prompt.description || "暂无描述"}
+                    {prompt.description || t("common.noDescription")}
                   </p>
                 </div>
               </Link>
@@ -76,7 +78,7 @@ export default function FavoritesPage() {
                 <button
                   onClick={() => toggleFavorite(prompt.id)}
                   className="p-1.5 rounded-md transition-colors hover:bg-muted text-red-500"
-                  title="取消收藏"
+                  title={t("favoritesPage.removeFavorite")}
                 >
                   <Heart className="h-4 w-4 fill-current" />
                 </button>
@@ -87,13 +89,13 @@ export default function FavoritesPage() {
       ) : (
         <div className="flex flex-col items-center justify-center py-20 border rounded-lg bg-muted/5 border-dashed">
           <Heart className="h-10 w-10 text-muted-foreground/30 mb-4" />
-          <p className="text-muted-foreground font-medium">暂无收藏内容</p>
-          <p className="text-sm text-muted-foreground/60 mt-1">点击提示词卡片上的心形图标进行收藏</p>
+          <p className="text-muted-foreground font-medium">{t("favoritesPage.emptyTitle")}</p>
+          <p className="text-sm text-muted-foreground/60 mt-1">{t("favoritesPage.emptyDescription")}</p>
           <Link 
             href="/prompts" 
             className="mt-6 text-sm font-medium text-primary hover:underline"
           >
-            去词库看看
+            {t("favoritesPage.browsePrompts")}
           </Link>
         </div>
       )}

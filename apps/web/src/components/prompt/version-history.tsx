@@ -5,6 +5,7 @@ import { useVersions, useRestoreVersion, useVersionDiff } from "@/hooks/use-vers
 import { cn } from "@promptbase/ui";
 import { History, RotateCcw, GitCompare, User, Clock } from "lucide-react";
 import type { UUID, PromptVersion } from "@promptbase/shared";
+import { useI18n } from "@/components/providers/i18n-provider";
 
 interface VersionHistoryProps {
   orgId: UUID;
@@ -13,6 +14,7 @@ interface VersionHistoryProps {
 }
 
 export function VersionHistory({ orgId, promptId, currentVersionId }: VersionHistoryProps) {
+  const { t, locale } = useI18n();
   const { data: versions, isLoading } = useVersions(orgId, promptId);
   const { mutate: restore, isPending: isRestoring } = useRestoreVersion(orgId, promptId);
   const [diffTargetId, setDiffTargetId] = useState<string | null>(null);
@@ -28,7 +30,7 @@ export function VersionHistory({ orgId, promptId, currentVersionId }: VersionHis
   }
 
   const handleRestore = (versionId: string) => {
-    if (window.confirm("确定要恢复到此版本吗？当前未保存的更改将丢失。")) {
+    if (window.confirm(t("prompt.restoreVersionConfirm"))) {
       restore(versionId);
     }
   };
@@ -37,7 +39,7 @@ export function VersionHistory({ orgId, promptId, currentVersionId }: VersionHis
     <div className="space-y-4">
       <div className="flex items-center gap-2 text-sm font-semibold mb-2">
         <History className="h-4 w-4 text-primary" />
-        <span>历史版本</span>
+        <span>{t("prompt.versionHistory")}</span>
       </div>
 
       <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2">
@@ -56,19 +58,19 @@ export function VersionHistory({ orgId, promptId, currentVersionId }: VersionHis
                 </span>
                 {currentVersionId === version.id && (
                   <span className="text-[9px] bg-primary text-primary-foreground px-1.5 rounded-full font-bold">
-                    当前
+                    {t("prompt.current")}
                   </span>
                 )}
               </div>
               <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
                 <Clock className="h-3 w-3" />
-                {new Date(version.createdAt).toLocaleString("zh-CN", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                {new Date(version.createdAt).toLocaleString(locale, { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" })}
               </div>
             </div>
 
             <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3">
               <User className="h-3 w-3" />
-              <span className="truncate">{version.createdBy?.displayName || version.createdBy?.email || "未知用户"}</span>
+              <span className="truncate">{version.createdBy?.displayName || version.createdBy?.email || t("prompt.unknownUser")}</span>
             </div>
 
             {version.changeSummary && (
@@ -82,7 +84,7 @@ export function VersionHistory({ orgId, promptId, currentVersionId }: VersionHis
                 className="flex items-center gap-1.5 text-xs font-medium text-primary hover:underline disabled:opacity-30 transition-all"
               >
                 <RotateCcw className="h-3 w-3" />
-                恢复
+                {t("prompt.restore")}
               </button>
               {currentVersionId && currentVersionId !== version.id && (
                 <button
@@ -93,7 +95,7 @@ export function VersionHistory({ orgId, promptId, currentVersionId }: VersionHis
                   )}
                 >
                   <GitCompare className="h-3 w-3" />
-                  {diffTargetId === version.id ? "收起差异" : "对比当前"}
+                  {diffTargetId === version.id ? t("prompt.collapseDiff") : t("prompt.compareCurrent")}
                 </button>
               )}
             </div>
@@ -111,9 +113,10 @@ export function VersionHistory({ orgId, promptId, currentVersionId }: VersionHis
 }
 
 function DiffViewer({ orgId, promptId, versionId, compareWithId }: { orgId: string; promptId: string; versionId: string; compareWithId: string }) {
+  const { t } = useI18n();
   const { data: diff, isLoading } = useVersionDiff(orgId, promptId, versionId, compareWithId);
 
-  if (isLoading) return <div className="text-xs text-muted-foreground animate-pulse text-center py-4">正在对比...</div>;
+  if (isLoading) return <div className="text-xs text-muted-foreground animate-pulse text-center py-4">{t("prompt.comparing")}</div>;
   if (!diff) return null;
 
   return (
@@ -121,7 +124,7 @@ function DiffViewer({ orgId, promptId, versionId, compareWithId }: { orgId: stri
       <div className="flex gap-3 text-[10px] text-muted-foreground">
         <span className="text-green-600">+{diff.summary.added}</span>
         <span className="text-red-600">-{diff.summary.removed}</span>
-        <span>{diff.summary.unchanged} 行未变</span>
+        <span>{t("prompt.unchangedLines", { count: diff.summary.unchanged })}</span>
       </div>
       <div className="bg-muted/50 rounded-md p-3 text-[11px] font-mono space-y-0.5 overflow-x-auto border border-dashed max-h-64 overflow-y-auto">
         {diff.changes.map((line, idx) => (

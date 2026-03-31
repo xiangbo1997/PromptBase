@@ -11,8 +11,10 @@ import { TagSelector } from "@/components/prompt/tag-selector";
 import { flattenFolderTree } from "@/lib/folder-tree";
 import { ArrowLeft, Save } from "lucide-react";
 import Link from "next/link";
+import { useI18n } from "@/components/providers/i18n-provider";
 
 export default function NewPromptPage() {
+  const { t } = useI18n();
   const orgId = useAuthStore((s) => s.orgId) ?? "";
   const router = useRouter();
   const { mutate: createPrompt, isPending } = useCreatePrompt(orgId);
@@ -32,11 +34,11 @@ export default function NewPromptPage() {
       { title, content, description, folderId: folderId || undefined, tagIds: selectedTagIds },
       {
         onSuccess: (data) => {
-          setFeedback({ tone: "success", message: "创建成功，正在跳转到详情页..." });
+          setFeedback({ tone: "success", message: t("newPromptPage.createSuccessRedirecting") });
           window.setTimeout(() => router.push(`/prompts/${data.id}`), 900);
         },
         onError: (error) => {
-          setFeedback({ tone: "error", message: error instanceof Error ? error.message : "创建失败，请重试" });
+          setFeedback({ tone: "error", message: error instanceof Error ? error.message : t("newPromptPage.createFailedRetry") });
         },
       },
     );
@@ -50,8 +52,8 @@ export default function NewPromptPage() {
             <ArrowLeft className="h-5 w-5" />
           </Link>
           <div>
-            <h1 className="text-2xl font-bold">新建提示词</h1>
-            <p className="text-sm text-muted-foreground">创建一个新的提示词模板</p>
+            <h1 className="text-2xl font-bold">{t("newPromptPage.title")}</h1>
+            <p className="text-sm text-muted-foreground">{t("newPromptPage.subtitle")}</p>
           </div>
         </div>
         <button
@@ -60,7 +62,7 @@ export default function NewPromptPage() {
           className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow hover:opacity-90 disabled:opacity-50"
         >
           <Save className="h-4 w-4" />
-          {isPending ? "保存中..." : "保存"}
+          {isPending ? t("common.saving") : t("common.save")}
         </button>
       </div>
 
@@ -69,34 +71,34 @@ export default function NewPromptPage() {
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-4">
           <div className="space-y-2">
-            <label className="text-sm font-medium">内容</label>
+            <label className="text-sm font-medium">{t("newPromptPage.content")}</label>
             <PromptEditor value={content} onChange={(v) => setContent(v || "")} />
           </div>
         </div>
         <div className="space-y-4 border rounded-lg p-6 bg-card h-fit">
           <div className="space-y-2">
-            <label className="text-sm font-medium">标题</label>
+            <label className="text-sm font-medium">{t("newPromptPage.titleLabel")}</label>
             <input
               className="w-full rounded-md border p-2 bg-background text-sm"
-              placeholder="提示词标题"
+              placeholder={t("newPromptPage.titlePlaceholder")}
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-medium">描述</label>
+            <label className="text-sm font-medium">{t("newPromptPage.description")}</label>
             <textarea
               className="w-full rounded-md border p-2 bg-background text-sm min-h-[100px]"
-              placeholder="简短描述该提示词的用途"
+              placeholder={t("newPromptPage.descriptionPlaceholder")}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             />
           </div>
           <div className="space-y-2">
             <div className="flex items-center justify-between gap-3">
-              <label className="text-sm font-medium">文件夹</label>
+              <label className="text-sm font-medium">{t("newPromptPage.folder")}</label>
               <Link href="/settings/folders" className="text-xs text-primary hover:underline">
-                管理文件夹
+                {t("newPromptPage.manageFolders")}
               </Link>
             </div>
             <select
@@ -104,7 +106,7 @@ export default function NewPromptPage() {
               value={folderId}
               onChange={(e) => setFolderId(e.target.value)}
             >
-              <option value="">根目录</option>
+              <option value="">{t("common.rootFolder")}</option>
               {flattenedFolders.map((f) => (
                 <option key={f.id} value={f.id}>
                   {"　".repeat(f.depth)}

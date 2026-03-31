@@ -7,6 +7,7 @@ import { flattenFolderTree } from "@/lib/folder-tree";
 import { useCreateFolder, useDeleteFolder, useFolders, useMoveFolder, useUpdateFolder } from "@/hooks/use-folders";
 import type { Folder } from "@promptbase/shared";
 import { Edit2, Folder as FolderIcon, Loader2, Plus, Save, Trash2, X } from "lucide-react";
+import { useI18n } from "@/components/providers/i18n-provider";
 
 interface FolderFormState {
   name: string;
@@ -30,6 +31,7 @@ function toFormState(folder?: Folder): FolderFormState {
 }
 
 export default function FoldersPage() {
+  const { t, locale } = useI18n();
   const orgId = useAuthStore((s) => s.orgId) ?? "";
   const { data: folders, isLoading } = useFolders(orgId);
   const { mutateAsync: createFolder, isPending: isCreating } = useCreateFolder(orgId);
@@ -59,9 +61,9 @@ export default function FoldersPage() {
         parentId: createForm.parentId || undefined,
       });
       resetCreateForm();
-      setFeedback({ tone: "success", message: "文件夹已创建" });
+      setFeedback({ tone: "success", message: t("settingsFoldersPage.created") });
     } catch (error) {
-      setFeedback({ tone: "error", message: error instanceof Error ? error.message : "创建文件夹失败，请重试" });
+      setFeedback({ tone: "error", message: error instanceof Error ? error.message : t("settingsFoldersPage.createFailedRetry") });
     }
   };
 
@@ -102,23 +104,23 @@ export default function FoldersPage() {
       }
 
       cancelEdit();
-      setFeedback({ tone: "success", message: "文件夹已更新" });
+      setFeedback({ tone: "success", message: t("settingsFoldersPage.updated") });
     } catch (error) {
-      setFeedback({ tone: "error", message: error instanceof Error ? error.message : "更新文件夹失败，请重试" });
+      setFeedback({ tone: "error", message: error instanceof Error ? error.message : t("settingsFoldersPage.updateFailedRetry") });
     }
   };
 
   const handleDelete = (folder: Folder) => {
-    if (!window.confirm(`确定要删除文件夹“${folder.name}”吗？删除前需要先清空其子文件夹和提示词。`)) return;
+    if (!window.confirm(t("settingsFoldersPage.deleteConfirm", { name: folder.name }))) return;
 
     setFeedback(null);
     deleteFolder(folder.id, {
       onSuccess: () => {
         if (editingId === folder.id) cancelEdit();
-        setFeedback({ tone: "success", message: "文件夹已删除" });
+        setFeedback({ tone: "success", message: t("settingsFoldersPage.deleted") });
       },
       onError: (error) => {
-        setFeedback({ tone: "error", message: error instanceof Error ? error.message : "删除文件夹失败，请重试" });
+        setFeedback({ tone: "error", message: error instanceof Error ? error.message : t("settingsFoldersPage.deleteFailedRetry") });
       },
     });
   };
@@ -127,11 +129,11 @@ export default function FoldersPage() {
     <div className="max-w-5xl space-y-8">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold">文件夹管理</h1>
-          <p className="mt-1 text-sm text-muted-foreground">维护提示词文件夹层级，方便在创建、筛选和搜索时按目录归类。</p>
+          <h1 className="text-2xl font-bold">{t("settingsFoldersPage.title")}</h1>
+          <p className="mt-1 text-sm text-muted-foreground">{t("settingsFoldersPage.subtitle")}</p>
         </div>
         <div className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-          {flattenedFolders.length} 个文件夹
+          {t("settingsFoldersPage.count", { count: flattenedFolders.length })}
         </div>
       </div>
 
@@ -143,29 +145,29 @@ export default function FoldersPage() {
             <Plus className="h-4 w-4" />
           </div>
           <div>
-            <h2 className="font-semibold">新建文件夹</h2>
-            <p className="text-sm text-muted-foreground">支持创建根目录或挂到已有文件夹下作为子目录。</p>
+            <h2 className="font-semibold">{t("settingsFoldersPage.newFolder")}</h2>
+            <p className="text-sm text-muted-foreground">{t("settingsFoldersPage.newFolderHint")}</p>
           </div>
         </div>
 
         <form onSubmit={handleCreate} className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_220px]">
           <div className="grid gap-4">
             <div className="grid gap-2">
-              <label className="text-sm font-medium">名称</label>
+              <label className="text-sm font-medium">{t("settingsFoldersPage.name")}</label>
               <input
                 required
                 className="w-full rounded-md border bg-background p-2 text-sm outline-none focus:ring-1 focus:ring-primary"
-                placeholder="例如：销售话术、客服 SOP、代码模板"
+                placeholder={t("settingsFoldersPage.namePlaceholder")}
                 value={createForm.name}
                 onChange={(e) => setCreateForm({ ...createForm, name: e.target.value })}
               />
             </div>
             <div className="grid gap-2">
-              <label className="text-sm font-medium">描述</label>
+              <label className="text-sm font-medium">{t("settingsFoldersPage.description")}</label>
               <textarea
                 rows={3}
                 className="w-full rounded-md border bg-background p-2 text-sm outline-none focus:ring-1 focus:ring-primary resize-none"
-                placeholder="说明这个文件夹的用途，可选。"
+                placeholder={t("settingsFoldersPage.descriptionPlaceholder")}
                 value={createForm.description}
                 onChange={(e) => setCreateForm({ ...createForm, description: e.target.value })}
               />
@@ -174,13 +176,13 @@ export default function FoldersPage() {
 
           <div className="grid gap-4">
             <div className="grid gap-2">
-              <label className="text-sm font-medium">父级目录</label>
+              <label className="text-sm font-medium">{t("settingsFoldersPage.parentFolder")}</label>
               <select
                 className="w-full rounded-md border bg-background p-2 text-sm outline-none focus:ring-1 focus:ring-primary"
                 value={createForm.parentId}
                 onChange={(e) => setCreateForm({ ...createForm, parentId: e.target.value })}
               >
-                <option value="">根目录</option>
+                <option value="">{t("common.rootFolder")}</option>
                 {flattenedFolders.map((folder) => (
                   <option key={folder.id} value={folder.id}>
                     {"　".repeat(folder.depth)}
@@ -195,7 +197,7 @@ export default function FoldersPage() {
               className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow disabled:opacity-50"
             >
               {isCreating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-              创建文件夹
+              {t("settingsFoldersPage.createFolder")}
             </button>
           </div>
         </form>
@@ -203,8 +205,8 @@ export default function FoldersPage() {
 
       <section className="rounded-xl border bg-card shadow-sm">
         <div className="border-b px-6 py-4">
-          <h2 className="font-semibold">目录结构</h2>
-          <p className="mt-1 text-sm text-muted-foreground">支持改名、调整父级目录，以及删除空文件夹。</p>
+          <h2 className="font-semibold">{t("settingsFoldersPage.treeTitle")}</h2>
+          <p className="mt-1 text-sm text-muted-foreground">{t("settingsFoldersPage.treeHint")}</p>
         </div>
 
         {isLoading ? (
@@ -212,7 +214,7 @@ export default function FoldersPage() {
             <Loader2 className="h-5 w-5 animate-spin" />
           </div>
         ) : !flattenedFolders.length ? (
-          <div className="px-6 py-12 text-center text-sm text-muted-foreground">还没有文件夹，先创建一个。</div>
+          <div className="px-6 py-12 text-center text-sm text-muted-foreground">{t("settingsFoldersPage.noFolders")}</div>
         ) : (
           <div className="divide-y">
             {flattenedFolders.map((folder) => {
@@ -229,7 +231,7 @@ export default function FoldersPage() {
                     <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_220px]">
                       <div className="grid gap-4">
                         <div className="grid gap-2">
-                          <label className="text-sm font-medium">名称</label>
+                          <label className="text-sm font-medium">{t("settingsFoldersPage.name")}</label>
                           <input
                             className="w-full rounded-md border bg-background p-2 text-sm outline-none focus:ring-1 focus:ring-primary"
                             value={editForm.name}
@@ -237,7 +239,7 @@ export default function FoldersPage() {
                           />
                         </div>
                         <div className="grid gap-2">
-                          <label className="text-sm font-medium">描述</label>
+                          <label className="text-sm font-medium">{t("settingsFoldersPage.description")}</label>
                           <textarea
                             rows={3}
                             className="w-full rounded-md border bg-background p-2 text-sm outline-none focus:ring-1 focus:ring-primary resize-none"
@@ -249,13 +251,13 @@ export default function FoldersPage() {
 
                       <div className="grid gap-4">
                         <div className="grid gap-2">
-                          <label className="text-sm font-medium">父级目录</label>
+                          <label className="text-sm font-medium">{t("settingsFoldersPage.parentFolder")}</label>
                           <select
                             className="w-full rounded-md border bg-background p-2 text-sm outline-none focus:ring-1 focus:ring-primary"
                             value={editForm.parentId}
                             onChange={(e) => setEditForm({ ...editForm, parentId: e.target.value })}
                           >
-                            <option value="">根目录</option>
+                            <option value="">{t("common.rootFolder")}</option>
                             {parentOptions.map((candidate) => (
                               <option key={candidate.id} value={candidate.id}>
                                 {"　".repeat(candidate.depth)}
@@ -272,7 +274,7 @@ export default function FoldersPage() {
                             className="inline-flex flex-1 items-center justify-center gap-2 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground shadow disabled:opacity-50"
                           >
                             {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                            保存
+                            {t("common.save")}
                           </button>
                           <button
                             type="button"
@@ -294,11 +296,11 @@ export default function FoldersPage() {
                           <div>
                             <h3 className="font-semibold">{folder.name}</h3>
                             <p className="text-xs text-muted-foreground">
-                              {folder.parentId ? "子目录" : "根目录"} · 更新于 {new Date(folder.updatedAt).toLocaleString("zh-CN")}
+                              {(folder.parentId ? t("common.childFolder") : t("common.rootFolder"))} · {t("common.updatedAt", { value: new Date(folder.updatedAt).toLocaleString(locale) })}
                             </p>
                           </div>
                         </div>
-                        <p className="text-sm text-muted-foreground">{folder.description || "未填写描述"}</p>
+                        <p className="text-sm text-muted-foreground">{folder.description || t("common.noDescriptionProvided")}</p>
                       </div>
 
                       <div className="flex flex-wrap gap-2">
@@ -308,7 +310,7 @@ export default function FoldersPage() {
                           className="inline-flex items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium hover:bg-muted"
                         >
                           <Plus className="h-4 w-4" />
-                          新建子级
+                          {t("settingsFoldersPage.newChild")}
                         </button>
                         <button
                           type="button"
@@ -316,7 +318,7 @@ export default function FoldersPage() {
                           className="inline-flex items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium hover:bg-muted"
                         >
                           <Edit2 className="h-4 w-4" />
-                          编辑
+                          {t("common.edit")}
                         </button>
                         <button
                           type="button"
@@ -325,7 +327,7 @@ export default function FoldersPage() {
                           className="inline-flex items-center gap-2 rounded-md border border-destructive/30 px-3 py-2 text-sm font-medium text-destructive hover:bg-destructive/10 disabled:opacity-50"
                         >
                           {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
-                          删除
+                          {t("common.delete")}
                         </button>
                       </div>
                     </div>

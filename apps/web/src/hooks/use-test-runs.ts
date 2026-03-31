@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { request } from "@/lib/api";
 import { useAuthStore } from "@/stores/auth";
+import { LOCALE_STORAGE_KEY, resolveLocale, translate } from "@/lib/i18n";
 import type { TestRun, TestRunStatus, UUID } from "@promptbase/shared";
 
 export function useCreateTestRun(orgId: UUID) {
@@ -40,6 +41,10 @@ export function useTestRunStream(orgId: UUID, testRunId: UUID | null) {
 
   const { token } = useAuthStore();
   const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001/api/v1";
+  const locale =
+    typeof window === "undefined"
+      ? resolveLocale(undefined)
+      : resolveLocale(window.localStorage.getItem(LOCALE_STORAGE_KEY) ?? window.navigator.language);
 
   useEffect(() => {
     if (!testRunId || !token) return;
@@ -56,9 +61,9 @@ export function useTestRunStream(orgId: UUID, testRunId: UUID | null) {
           signal: controller.signal,
         });
 
-        if (!response.ok) throw new Error("连接测试流失败");
+        if (!response.ok) throw new Error(translate(locale, "common.requestFailed"));
         const reader = response.body?.getReader();
-        if (!reader) throw new Error("浏览器不支持 ReadableStream");
+        if (!reader) throw new Error("ReadableStream is not supported in this browser");
 
         const decoder = new TextDecoder();
         let buffer = "";
@@ -109,7 +114,7 @@ export function useTestRunStream(orgId: UUID, testRunId: UUID | null) {
         if (mounted) {
           setState((prev) => ({
             ...prev,
-            error: err instanceof Error ? err.message : "未知错误",
+            error: err instanceof Error ? err.message : translate(locale, "common.unknownError"),
             isStreaming: false,
             status: "FAILED",
           }));
@@ -122,7 +127,7 @@ export function useTestRunStream(orgId: UUID, testRunId: UUID | null) {
       mounted = false;
       controller.abort();
     };
-  }, [orgId, testRunId, token, apiUrl]);
+  }, [apiUrl, locale, orgId, testRunId, token]);
 
   const reset = useCallback(() => {
     setState({ chunks: [], status: null, metrics: null, error: null, isStreaming: false });

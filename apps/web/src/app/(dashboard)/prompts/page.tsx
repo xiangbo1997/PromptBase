@@ -14,8 +14,10 @@ import { cn } from "@promptbase/ui";
 import { ImportDialog } from "@/components/import-export/import-dialog";
 import { ExportDialog } from "@/components/import-export/export-dialog";
 import { flattenFolderTree } from "@/lib/folder-tree";
+import { useI18n } from "@/components/providers/i18n-provider";
 
 export default function PromptsPage() {
+  const { t } = useI18n();
   const searchParams = useSearchParams();
   const orgId = useAuthStore((s) => s.orgId) ?? "";
   const folderId = searchParams.get("folder") || undefined;
@@ -70,7 +72,7 @@ export default function PromptsPage() {
             {prompt.title}
           </h3>
           <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
-            {prompt.description || "暂无描述"}
+            {prompt.description || t("common.noDescription")}
           </p>
         </div>
         {viewMode === "grid" && (
@@ -95,7 +97,7 @@ export default function PromptsPage() {
             "p-1.5 rounded-md transition-colors hover:bg-muted",
             prompt.isPinned ? "text-primary" : "text-muted-foreground"
           )}
-          title={prompt.isPinned ? "取消置顶" : "置顶"}
+          title={prompt.isPinned ? t("promptsPage.unpin") : t("promptsPage.pin")}
         >
           {prompt.isPinned ? <PinOff className="h-4 w-4" /> : <Pin className="h-4 w-4" />}
         </button>
@@ -108,7 +110,7 @@ export default function PromptsPage() {
             "p-1.5 rounded-md transition-colors hover:bg-muted",
             prompt.isFavorite ? "text-red-500" : "text-muted-foreground"
           )}
-          title={prompt.isFavorite ? "取消收藏" : "收藏"}
+          title={prompt.isFavorite ? t("promptsPage.unfavorite") : t("promptsPage.favorite")}
         >
           <Heart className={cn("h-4 w-4", prompt.isFavorite && "fill-current")} />
         </button>
@@ -120,11 +122,11 @@ export default function PromptsPage() {
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">提示词库</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t("promptsPage.title")}</h1>
           <p className="text-muted-foreground">
-            管理和组织您的团队 AI 提示词
-            {activeFolder ? ` · 文件夹：${activeFolder.name}` : ""}
-            {activeTag ? ` · 标签：${activeTag.name}` : ""}
+            {t("promptsPage.subtitle")}
+            {activeFolder ? t("promptsPage.activeFolder", { name: activeFolder.name }) : ""}
+            {activeTag ? t("promptsPage.activeTag", { name: activeTag.name }) : ""}
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -133,21 +135,21 @@ export default function PromptsPage() {
             className="inline-flex items-center gap-2 rounded-md border bg-card px-4 py-2 text-sm font-medium shadow-sm hover:bg-muted transition-colors"
           >
             <Upload className="h-4 w-4" />
-            导入
+            {t("promptsPage.import")}
           </button>
           <button
             onClick={() => setIsExportOpen(true)}
             className="inline-flex items-center gap-2 rounded-md border bg-card px-4 py-2 text-sm font-medium shadow-sm hover:bg-muted transition-colors"
           >
             <Download className="h-4 w-4" />
-            导出
+            {t("promptsPage.export")}
           </button>
           <Link
             href="/prompts/new"
             className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow hover:opacity-90 transition-opacity"
           >
             <Plus className="h-4 w-4" />
-            新建提示词
+            {t("promptsPage.newPrompt")}
           </Link>
         </div>
       </div>
@@ -157,7 +159,7 @@ export default function PromptsPage() {
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <input
             className="w-full rounded-md border bg-background pl-9 p-2 text-sm"
-            placeholder="搜索提示词..."
+            placeholder={t("promptsPage.searchPlaceholder")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -178,7 +180,7 @@ export default function PromptsPage() {
         </div>
         {(folderId || tagId) && (
           <Link href="/prompts" className="text-sm text-muted-foreground hover:text-primary transition-colors">
-            清除筛选
+            {t("promptsPage.clearFilters")}
           </Link>
         )}
       </div>
@@ -195,7 +197,7 @@ export default function PromptsPage() {
             <div className="space-y-4">
               <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground uppercase tracking-wider">
                 <Pin className="h-4 w-4" />
-                置顶提示词
+                {t("promptsPage.pinnedPrompts")}
               </div>
               <div className={viewMode === "grid" ? "grid gap-4 md:grid-cols-2 lg:grid-cols-3" : "space-y-2"}>
                 {filteredPinnedPrompts.map((prompt) => (
@@ -208,7 +210,7 @@ export default function PromptsPage() {
           <div className="space-y-4">
             {filteredPinnedPrompts && filteredPinnedPrompts.length > 0 && (
               <div className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-                全部提示词
+                {t("promptsPage.allPrompts")}
               </div>
             )}
             <div className={viewMode === "grid" ? "grid gap-4 md:grid-cols-2 lg:grid-cols-3" : "space-y-2"}>
@@ -218,7 +220,7 @@ export default function PromptsPage() {
             </div>
             {(filteredPrompts?.length ?? 0) === 0 && (
               <div className="py-12 text-center border rounded-lg bg-muted/10 text-muted-foreground">
-                没有找到相关提示词
+                {t("promptsPage.emptyTitle")}
               </div>
             )}
           </div>

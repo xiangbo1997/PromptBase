@@ -8,17 +8,18 @@ import { cn } from "@promptbase/ui";
 import { useFolders } from "@/hooks/use-folders";
 import { useTags } from "@/hooks/use-tags";
 import { flattenFolderTree } from "@/lib/folder-tree";
+import { useI18n } from "@/components/providers/i18n-provider";
 
 const navItems = [
-  { label: "提示词", href: "/prompts", icon: MessageSquare },
-  { label: "收藏", href: "/favorites", icon: Heart },
-  { label: "AI 实验室", href: "/playground", icon: Sparkles },
-  { label: "模型配置", href: "/settings/models", icon: Settings },
-  { label: "文件夹管理", href: "/settings/folders", icon: Folder },
-  { label: "标签管理", href: "/settings/tags", icon: Hash },
-  { label: "团队管理", href: "/settings/team", icon: Users },
-  { label: "审计日志", href: "/settings/audit", icon: History },
-];
+  { labelKey: "nav.prompts", href: "/prompts", icon: MessageSquare },
+  { labelKey: "nav.favorites", href: "/favorites", icon: Heart },
+  { labelKey: "nav.playground", href: "/playground", icon: Sparkles },
+  { labelKey: "nav.models", href: "/settings/models", icon: Settings },
+  { labelKey: "nav.folders", href: "/settings/folders", icon: Folder },
+  { labelKey: "nav.tags", href: "/settings/tags", icon: Hash },
+  { labelKey: "nav.team", href: "/settings/team", icon: Users },
+  { labelKey: "nav.audit", href: "/settings/audit", icon: History },
+] as const;
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -26,6 +27,7 @@ export default function Sidebar() {
   const { data: folders } = useFolders(orgId);
   const { data: tags } = useTags(orgId);
   const flattenedFolders = flattenFolderTree(folders);
+  const { t } = useI18n();
 
   return (
     <aside className="hidden w-64 flex-col border-r bg-card md:flex">
@@ -48,7 +50,7 @@ export default function Sidebar() {
             )}
           >
             <item.icon className="h-4 w-4" />
-            {item.label}
+            {t(item.labelKey)}
           </Link>
         ))}
       </nav>
@@ -56,7 +58,7 @@ export default function Sidebar() {
       <div className="flex-1 overflow-y-auto px-4 py-2 space-y-6">
         <div className="space-y-2">
           <h4 className="px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            文件夹
+            {t("common.folders")}
           </h4>
           <div className="space-y-1">
             {flattenedFolders.map((folder) => (
@@ -75,7 +77,7 @@ export default function Sidebar() {
 
         <div className="space-y-2">
           <h4 className="px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            标签
+            {t("common.tags")}
           </h4>
           <div className="flex flex-wrap gap-2 px-3">
             {tags?.map((tag) => (

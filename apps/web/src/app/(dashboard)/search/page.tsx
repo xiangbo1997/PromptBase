@@ -10,8 +10,10 @@ import { Search as SearchIcon, Filter, Folder, Hash, Grid, List as ListIcon, Hea
 import Link from "next/link";
 import { cn } from "@promptbase/ui";
 import { flattenFolderTree } from "@/lib/folder-tree";
+import { useI18n } from "@/components/providers/i18n-provider";
 
 export default function SearchPage() {
+  const { t } = useI18n();
   const searchParams = useSearchParams();
   const orgId = useAuthStore((s) => s.orgId) ?? "";
   const query = searchParams.get("q") || "";
@@ -29,9 +31,9 @@ export default function SearchPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">搜索结果</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t("searchPage.title")}</h1>
           <p className="text-muted-foreground">
-            {query ? `正在搜索: "${query}"` : "请输入关键词搜索"}
+            {query ? t("searchPage.searching", { query }) : t("searchPage.enterKeyword")}
           </p>
         </div>
       </div>
@@ -42,17 +44,17 @@ export default function SearchPage() {
           <div className="p-4 border rounded-lg bg-card space-y-4">
             <div className="flex items-center gap-2 font-semibold text-sm">
               <Filter className="h-4 w-4" />
-              筛选条件
+              {t("searchPage.filters")}
             </div>
             
             <div className="space-y-2">
-              <label className="text-xs font-medium text-muted-foreground uppercase">文件夹</label>
+              <label className="text-xs font-medium text-muted-foreground uppercase">{t("common.folders")}</label>
               <select 
                 className="w-full text-sm border rounded-md p-2 bg-background"
                 value={folderId || ""}
                 onChange={(e) => setFolderId(e.target.value || undefined)}
               >
-                <option value="">所有文件夹</option>
+                <option value="">{t("searchPage.allFolders")}</option>
                 {flattenedFolders.map((f) => (
                   <option key={f.id} value={f.id}>
                     {"　".repeat(f.depth)}
@@ -63,13 +65,13 @@ export default function SearchPage() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-medium text-muted-foreground uppercase">标签</label>
+              <label className="text-xs font-medium text-muted-foreground uppercase">{t("common.tags")}</label>
               <select 
                 className="w-full text-sm border rounded-md p-2 bg-background"
                 value={tagId || ""}
                 onChange={(e) => setTagId(e.target.value || undefined)}
               >
-                <option value="">所有标签</option>
+                <option value="">{t("searchPage.allTags")}</option>
                 {tags?.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
               </select>
             </div>
@@ -78,7 +80,7 @@ export default function SearchPage() {
               onClick={() => { setFolderId(undefined); setTagId(undefined); }}
               className="w-full text-xs text-center text-muted-foreground hover:text-primary transition-colors"
             >
-              重置筛选
+              {t("searchPage.resetFilters")}
             </button>
           </div>
         </div>
@@ -87,7 +89,7 @@ export default function SearchPage() {
         <div className="flex-1 space-y-4">
           <div className="flex items-center justify-between">
             <div className="text-sm text-muted-foreground">
-              共找到 {results?.length || 0} 个结果
+              {t("searchPage.resultsCount", { count: results?.length || 0 })}
             </div>
             <div className="flex items-center border rounded-md p-1 bg-muted/50">
               <button
@@ -131,14 +133,14 @@ export default function SearchPage() {
                       {prompt.isFavorite && <Heart className="h-3 w-3 text-red-500 fill-current" />}
                     </div>
                     <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
-                      {prompt.description || "暂无描述"}
+                      {prompt.description || t("common.noDescription")}
                     </p>
                   </div>
                   {viewMode === "grid" && (
                     <div className="flex items-center gap-2 mt-4">
                       <div className="flex items-center gap-1 text-[10px] text-muted-foreground bg-muted px-2 py-0.5 rounded">
                         <Folder className="h-3 w-3" />
-                        {prompt.folderId ? flattenedFolders.find((f) => f.id === prompt.folderId)?.name : "根目录"}
+                        {prompt.folderId ? flattenedFolders.find((f) => f.id === prompt.folderId)?.name : t("common.rootFolder")}
                       </div>
                     </div>
                   )}
@@ -148,8 +150,8 @@ export default function SearchPage() {
           ) : (
             <div className="flex flex-col items-center justify-center py-20 border rounded-lg bg-muted/5 border-dashed">
               <SearchIcon className="h-10 w-10 text-muted-foreground/30 mb-4" />
-              <p className="text-muted-foreground font-medium">没有找到匹配的提示词</p>
-              <p className="text-sm text-muted-foreground/60 mt-1">尝试更换关键词或清除筛选条件</p>
+              <p className="text-muted-foreground font-medium">{t("searchPage.emptyTitle")}</p>
+              <p className="text-sm text-muted-foreground/60 mt-1">{t("searchPage.emptyDescription")}</p>
             </div>
           )}
         </div>

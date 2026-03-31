@@ -4,30 +4,29 @@ import { useState } from "react";
 import { useAuthStore } from "@/stores/auth";
 import { useMembers, useInviteMember } from "@/hooks/use-team";
 import { Users, Plus, Mail, Shield, Loader2 } from "lucide-react";
-
-const roleOptions = [
-  { value: "admin", label: "管理员" },
-  { value: "editor", label: "编辑者" },
-  { value: "viewer", label: "查看者" },
-];
-
-const roleLabels: Record<string, string> = {
-  owner: "所有者",
-  admin: "管理员",
-  editor: "编辑者",
-  viewer: "查看者",
-};
-
-const statusLabels: Record<string, string> = {
-  ACTIVE: "已激活",
-  INVITED: "已邀请",
-  SUSPENDED: "已停用",
-};
+import { useI18n } from "@/components/providers/i18n-provider";
 
 export default function TeamPage() {
+  const { t } = useI18n();
   const orgId = useAuthStore((s) => s.orgId) ?? "";
   const { data: members, isLoading } = useMembers(orgId);
   const invite = useInviteMember(orgId);
+  const roleOptions = [
+    { value: "admin", label: t("settingsTeamPage.roleAdmin") },
+    { value: "editor", label: t("settingsTeamPage.roleEditor") },
+    { value: "viewer", label: t("settingsTeamPage.roleViewer") },
+  ];
+  const roleLabels: Record<string, string> = {
+    owner: t("settingsTeamPage.roleOwner"),
+    admin: t("settingsTeamPage.roleAdmin"),
+    editor: t("settingsTeamPage.roleEditor"),
+    viewer: t("settingsTeamPage.roleViewer"),
+  };
+  const statusLabels: Record<string, string> = {
+    ACTIVE: t("settingsTeamPage.statusActive"),
+    INVITED: t("settingsTeamPage.statusInvited"),
+    SUSPENDED: t("settingsTeamPage.statusSuspended"),
+  };
 
   const [showInvite, setShowInvite] = useState(false);
   const [email, setEmail] = useState("");
@@ -51,28 +50,28 @@ export default function TeamPage() {
     <div className="max-w-4xl space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">团队管理</h1>
-          <p className="text-sm text-muted-foreground mt-1">管理团队成员和角色权限</p>
+          <h1 className="text-2xl font-bold">{t("settingsTeamPage.title")}</h1>
+          <p className="text-sm text-muted-foreground mt-1">{t("settingsTeamPage.subtitle")}</p>
         </div>
         <button
           onClick={() => setShowInvite(!showInvite)}
           className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
         >
           <Plus className="h-4 w-4" />
-          邀请成员
+          {t("settingsTeamPage.inviteMember")}
         </button>
       </div>
 
       {showInvite && (
         <div className="rounded-lg border bg-card p-4 space-y-3">
-          <h3 className="text-sm font-medium">邀请新成员</h3>
+          <h3 className="text-sm font-medium">{t("settingsTeamPage.inviteNewMember")}</h3>
           <div className="flex gap-3">
             <div className="flex-1">
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <input
                   type="email"
-                  placeholder="输入邮箱地址"
+                  placeholder={t("settingsTeamPage.emailPlaceholder")}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleInvite()}
@@ -94,11 +93,11 @@ export default function TeamPage() {
               disabled={invite.isPending || !email.trim()}
               className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
             >
-              {invite.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "发送邀请"}
+              {invite.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : t("settingsTeamPage.sendInvite")}
             </button>
           </div>
           {invite.isError && (
-            <p className="text-sm text-destructive">邀请失败，请重试</p>
+            <p className="text-sm text-destructive">{t("settingsTeamPage.inviteFailedRetry")}</p>
           )}
         </div>
       )}
@@ -107,7 +106,7 @@ export default function TeamPage() {
         <div className="border-b px-4 py-3">
           <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
             <Users className="h-4 w-4" />
-            成员列表 ({members?.length ?? 0})
+            {t("settingsTeamPage.membersList", { count: members?.length ?? 0 })}
           </div>
         </div>
 
@@ -116,7 +115,7 @@ export default function TeamPage() {
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
         ) : !members?.length ? (
-          <div className="py-12 text-center text-sm text-muted-foreground">暂无成员</div>
+          <div className="py-12 text-center text-sm text-muted-foreground">{t("settingsTeamPage.noMembers")}</div>
         ) : (
           <div className="divide-y">
             {members.map((member) => (

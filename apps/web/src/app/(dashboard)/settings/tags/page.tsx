@@ -6,6 +6,7 @@ import { ActionFeedback } from "@/components/prompt/action-feedback";
 import { useCreateTag, useDeleteTag, useTags, useUpdateTag } from "@/hooks/use-tags";
 import type { Tag } from "@promptbase/shared";
 import { Edit2, Hash, Loader2, Plus, Save, Trash2, X } from "lucide-react";
+import { useI18n } from "@/components/providers/i18n-provider";
 
 interface TagFormState {
   name: string;
@@ -29,6 +30,7 @@ function toFormState(tag?: Tag): TagFormState {
 }
 
 export default function TagsPage() {
+  const { t, locale } = useI18n();
   const orgId = useAuthStore((s) => s.orgId) ?? "";
   const { data: tags, isLoading } = useTags(orgId);
   const { mutate: createTag, isPending: isCreating } = useCreateTag(orgId);
@@ -55,10 +57,10 @@ export default function TagsPage() {
       {
         onSuccess: () => {
           resetCreateForm();
-          setFeedback({ tone: "success", message: "标签已创建" });
+          setFeedback({ tone: "success", message: t("settingsTagsPage.created") });
         },
         onError: (error) => {
-          setFeedback({ tone: "error", message: error instanceof Error ? error.message : "创建标签失败，请重试" });
+          setFeedback({ tone: "error", message: error instanceof Error ? error.message : t("settingsTagsPage.createFailedRetry") });
         },
       },
     );
@@ -87,26 +89,26 @@ export default function TagsPage() {
       {
         onSuccess: () => {
           cancelEdit();
-          setFeedback({ tone: "success", message: "标签已更新" });
+          setFeedback({ tone: "success", message: t("settingsTagsPage.updated") });
         },
         onError: (error) => {
-          setFeedback({ tone: "error", message: error instanceof Error ? error.message : "更新标签失败，请重试" });
+          setFeedback({ tone: "error", message: error instanceof Error ? error.message : t("settingsTagsPage.updateFailedRetry") });
         },
       },
     );
   };
 
   const handleDelete = (tag: Tag) => {
-    if (!window.confirm(`确定要删除标签“${tag.name}”吗？相关提示词会失去这个标签。`)) return;
+    if (!window.confirm(t("settingsTagsPage.deleteConfirm", { name: tag.name }))) return;
 
     setFeedback(null);
     deleteTag(tag.id, {
       onSuccess: () => {
         if (editingId === tag.id) cancelEdit();
-        setFeedback({ tone: "success", message: "标签已删除" });
+        setFeedback({ tone: "success", message: t("settingsTagsPage.deleted") });
       },
       onError: (error) => {
-        setFeedback({ tone: "error", message: error instanceof Error ? error.message : "删除标签失败，请重试" });
+        setFeedback({ tone: "error", message: error instanceof Error ? error.message : t("settingsTagsPage.deleteFailedRetry") });
       },
     });
   };
@@ -115,11 +117,11 @@ export default function TagsPage() {
     <div className="max-w-5xl space-y-8">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold">标签管理</h1>
-          <p className="mt-1 text-sm text-muted-foreground">统一维护标签的名称、颜色和描述，用于提示词分类和筛选。</p>
+          <h1 className="text-2xl font-bold">{t("settingsTagsPage.title")}</h1>
+          <p className="mt-1 text-sm text-muted-foreground">{t("settingsTagsPage.subtitle")}</p>
         </div>
         <div className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-          {tags?.length ?? 0} 个标签
+          {t("settingsTagsPage.count", { count: tags?.length ?? 0 })}
         </div>
       </div>
 
@@ -131,29 +133,29 @@ export default function TagsPage() {
             <Plus className="h-4 w-4" />
           </div>
           <div>
-            <h2 className="font-semibold">新建标签</h2>
-            <p className="text-sm text-muted-foreground">创建后可立即在提示词编辑页选择使用。</p>
+            <h2 className="font-semibold">{t("settingsTagsPage.newTag")}</h2>
+            <p className="text-sm text-muted-foreground">{t("settingsTagsPage.newTagHint")}</p>
           </div>
         </div>
 
         <form onSubmit={handleCreate} className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_140px]">
           <div className="grid gap-4">
             <div className="grid gap-2">
-              <label className="text-sm font-medium">名称</label>
+              <label className="text-sm font-medium">{t("settingsTagsPage.name")}</label>
               <input
                 required
                 className="w-full rounded-md border bg-background p-2 text-sm outline-none focus:ring-1 focus:ring-primary"
-                placeholder="例如：营销、代码审查、客服"
+                placeholder={t("settingsTagsPage.namePlaceholder")}
                 value={createForm.name}
                 onChange={(e) => setCreateForm({ ...createForm, name: e.target.value })}
               />
             </div>
             <div className="grid gap-2">
-              <label className="text-sm font-medium">描述</label>
+              <label className="text-sm font-medium">{t("settingsTagsPage.description")}</label>
               <textarea
                 rows={3}
                 className="w-full rounded-md border bg-background p-2 text-sm outline-none focus:ring-1 focus:ring-primary resize-none"
-                placeholder="说明这个标签的使用场景，可选。"
+                placeholder={t("settingsTagsPage.descriptionPlaceholder")}
                 value={createForm.description}
                 onChange={(e) => setCreateForm({ ...createForm, description: e.target.value })}
               />
@@ -162,7 +164,7 @@ export default function TagsPage() {
 
           <div className="grid gap-4">
             <div className="grid gap-2">
-              <label className="text-sm font-medium">颜色</label>
+              <label className="text-sm font-medium">{t("settingsTagsPage.color")}</label>
               <input
                 type="color"
                 className="h-10 w-full rounded-md border bg-background p-1"
@@ -176,7 +178,7 @@ export default function TagsPage() {
               className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow disabled:opacity-50"
             >
               {isCreating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-              创建标签
+              {t("settingsTagsPage.createTag")}
             </button>
           </div>
         </form>
@@ -184,8 +186,8 @@ export default function TagsPage() {
 
       <section className="rounded-xl border bg-card shadow-sm">
         <div className="border-b px-6 py-4">
-          <h2 className="font-semibold">标签列表</h2>
-          <p className="mt-1 text-sm text-muted-foreground">支持修改名称、颜色和描述，也可以直接删除不再使用的标签。</p>
+          <h2 className="font-semibold">{t("settingsTagsPage.tagList")}</h2>
+          <p className="mt-1 text-sm text-muted-foreground">{t("settingsTagsPage.tagListHint")}</p>
         </div>
 
         {isLoading ? (
@@ -193,7 +195,7 @@ export default function TagsPage() {
             <Loader2 className="h-5 w-5 animate-spin" />
           </div>
         ) : !tags?.length ? (
-          <div className="px-6 py-12 text-center text-sm text-muted-foreground">还没有标签，先创建一个。</div>
+          <div className="px-6 py-12 text-center text-sm text-muted-foreground">{t("settingsTagsPage.noTags")}</div>
         ) : (
           <div className="divide-y">
             {tags.map((tag) => {
@@ -206,7 +208,7 @@ export default function TagsPage() {
                     <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_160px]">
                       <div className="grid gap-4">
                         <div className="grid gap-2">
-                          <label className="text-sm font-medium">名称</label>
+                          <label className="text-sm font-medium">{t("settingsTagsPage.name")}</label>
                           <input
                             className="w-full rounded-md border bg-background p-2 text-sm outline-none focus:ring-1 focus:ring-primary"
                             value={editForm.name}
@@ -214,7 +216,7 @@ export default function TagsPage() {
                           />
                         </div>
                         <div className="grid gap-2">
-                          <label className="text-sm font-medium">描述</label>
+                          <label className="text-sm font-medium">{t("settingsTagsPage.description")}</label>
                           <textarea
                             rows={3}
                             className="w-full rounded-md border bg-background p-2 text-sm outline-none focus:ring-1 focus:ring-primary resize-none"
@@ -225,7 +227,7 @@ export default function TagsPage() {
                       </div>
                       <div className="grid gap-4">
                         <div className="grid gap-2">
-                          <label className="text-sm font-medium">颜色</label>
+                          <label className="text-sm font-medium">{t("settingsTagsPage.color")}</label>
                           <input
                             type="color"
                             className="h-10 w-full rounded-md border bg-background p-1"
@@ -234,10 +236,10 @@ export default function TagsPage() {
                           />
                         </div>
                         <div className="space-y-2 rounded-lg border bg-muted/20 p-3">
-                          <div className="text-xs font-medium text-muted-foreground">预览</div>
+                          <div className="text-xs font-medium text-muted-foreground">{t("settingsTagsPage.preview")}</div>
                           <div className="inline-flex items-center gap-2 rounded-full border bg-background px-3 py-1 text-xs font-medium">
                             <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: swatchColor }} />
-                            {editForm.name || "未命名标签"}
+                            {editForm.name || t("settingsTagsPage.unnamedTag")}
                           </div>
                         </div>
                         <div className="flex gap-2">
@@ -248,7 +250,7 @@ export default function TagsPage() {
                             className="inline-flex flex-1 items-center justify-center gap-2 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground shadow disabled:opacity-50"
                           >
                             {isUpdating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                            保存
+                            {t("common.save")}
                           </button>
                           <button
                             type="button"
@@ -275,11 +277,11 @@ export default function TagsPage() {
                                 {tag.slug}
                               </span>
                             </div>
-                            <p className="text-xs text-muted-foreground">更新于 {new Date(tag.updatedAt).toLocaleString("zh-CN")}</p>
+                            <p className="text-xs text-muted-foreground">{t("common.updatedAt", { value: new Date(tag.updatedAt).toLocaleString(locale) })}</p>
                           </div>
                         </div>
                         <p className="max-w-2xl text-sm text-muted-foreground">
-                          {tag.description || "未填写描述"}
+                          {tag.description || t("common.noDescriptionProvided")}
                         </p>
                       </div>
 
@@ -290,7 +292,7 @@ export default function TagsPage() {
                           className="inline-flex items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium hover:bg-muted"
                         >
                           <Edit2 className="h-4 w-4" />
-                          编辑
+                          {t("common.edit")}
                         </button>
                         <button
                           type="button"
@@ -299,7 +301,7 @@ export default function TagsPage() {
                           className="inline-flex items-center gap-2 rounded-md border border-destructive/30 px-3 py-2 text-sm font-medium text-destructive hover:bg-destructive/10 disabled:opacity-50"
                         >
                           {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
-                          删除
+                          {t("common.delete")}
                         </button>
                       </div>
                     </div>

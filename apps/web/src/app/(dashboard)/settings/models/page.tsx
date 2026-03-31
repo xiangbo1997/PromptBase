@@ -14,6 +14,7 @@ import {
   MODEL_PROVIDER_PROTOCOLS,
   type ModelProviderProtocol,
 } from "@promptbase/shared";
+import { useI18n } from "@/components/providers/i18n-provider";
 
 interface ProviderFormState {
   name: string;
@@ -34,6 +35,7 @@ const defaultFormState: ProviderFormState = {
 };
 
 export default function ModelProvidersPage() {
+  const { t } = useI18n();
   const orgId = useAuthStore((s) => s.orgId) ?? "";
   const { data: providers, isLoading } = useModelProviders(orgId);
   const { mutate: createProvider, isPending: isCreating } = useCreateModelProvider(orgId);
@@ -105,26 +107,26 @@ export default function ModelProvidersPage() {
   };
 
   const handleDelete = (id: string) => {
-    if (window.confirm("确定要删除此模型提供商？")) {
+    if (window.confirm(t("settingsModelsPage.deleteConfirm"))) {
       deleteProvider(id);
     }
   };
 
-  if (isLoading) return <div className="p-8 text-center text-muted-foreground">加载中...</div>;
+  if (isLoading) return <div className="p-8 text-center text-muted-foreground">{t("common.loading")}</div>;
 
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">AI 模型配置</h1>
-          <p className="text-muted-foreground text-sm">管理模型提供商和 API 密钥</p>
+          <h1 className="text-2xl font-bold">{t("settingsModelsPage.title")}</h1>
+          <p className="text-muted-foreground text-sm">{t("settingsModelsPage.subtitle")}</p>
         </div>
         <button
           onClick={openCreateModal}
           className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow hover:opacity-90"
         >
           <Plus className="h-4 w-4" />
-          添加提供商
+          {t("settingsModelsPage.addProvider")}
         </button>
       </div>
 
@@ -139,14 +141,14 @@ export default function ModelProvidersPage() {
                 <button
                   onClick={() => openEditModal(provider)}
                   className="p-1.5 text-muted-foreground hover:text-primary transition-colors"
-                  title="编辑提供商"
+                  title={t("settingsModelsPage.editProvider")}
                 >
                   <Edit2 className="h-4 w-4" />
                 </button>
                 <button
                   onClick={() => handleDelete(provider.id)}
                   className="p-1.5 text-muted-foreground hover:text-destructive transition-colors"
-                  title="删除提供商"
+                  title={t("settingsModelsPage.deleteProvider")}
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
@@ -156,24 +158,24 @@ export default function ModelProvidersPage() {
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-4 font-medium uppercase tracking-wider">
               <span>{MODEL_PROVIDER_PROTOCOL_META[provider.provider].label}</span>
               <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
-              <span>{provider.models.length} 个模型</span>
+              <span>{t("settingsModelsPage.modelCount", { count: provider.models.length })}</span>
               {!provider.isActive && (
                 <>
                   <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
-                  <span>已停用</span>
+                  <span>{t("settingsModelsPage.disabled")}</span>
                 </>
               )}
             </div>
             <div className="space-y-2 pt-4 border-t border-dashed">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">API 密钥</span>
+                <span className="text-muted-foreground">{t("settingsModelsPage.apiKey")}</span>
                 {provider.hasApiKey ? (
                   <span className="flex items-center gap-1 text-green-600 text-xs font-medium">
-                    <ShieldCheck className="h-3.5 w-3.5" /> 已配置
+                    <ShieldCheck className="h-3.5 w-3.5" /> {t("settingsModelsPage.configured")}
                   </span>
                 ) : (
                   <span className="flex items-center gap-1 text-amber-600 text-xs font-medium">
-                    <ShieldAlert className="h-3.5 w-3.5" /> 未配置
+                    <ShieldAlert className="h-3.5 w-3.5" /> {t("settingsModelsPage.notConfigured")}
                   </span>
                 )}
               </div>
@@ -197,25 +199,25 @@ export default function ModelProvidersPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
           <div className="w-full max-w-lg bg-card border rounded-xl shadow-2xl overflow-hidden">
             <div className="p-6 border-b flex items-center justify-between bg-muted/30">
-              <h2 className="text-xl font-bold">{editingId ? "编辑模型提供商" : "添加模型提供商"}</h2>
+              <h2 className="text-xl font-bold">{editingId ? t("settingsModelsPage.editProviderTitle") : t("settingsModelsPage.addProviderTitle")}</h2>
               <button onClick={closeModal} className="text-sm text-muted-foreground hover:text-foreground">
-                取消
+                {t("common.cancel")}
               </button>
             </div>
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div className="space-y-2">
-                <label className="text-sm font-semibold">显示名称</label>
+                <label className="text-sm font-semibold">{t("settingsModelsPage.displayName")}</label>
                 <input
                   required
                   className="w-full rounded-md border p-2 bg-background text-sm outline-none focus:ring-1 focus:ring-primary"
-                  placeholder="例如: 生产环境 OpenAI"
+                  placeholder={t("settingsModelsPage.displayNamePlaceholder")}
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-semibold">协议</label>
+                  <label className="text-sm font-semibold">{t("settingsModelsPage.protocol")}</label>
                   <select
                     className="w-full rounded-md border p-2 bg-background text-sm outline-none focus:ring-1 focus:ring-primary cursor-pointer"
                     value={formData.provider}
@@ -235,33 +237,33 @@ export default function ModelProvidersPage() {
                   <p className="text-[11px] leading-5 text-muted-foreground">{selectedProtocolMeta.description}</p>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-semibold">Base URL (可选)</label>
+                  <label className="text-sm font-semibold">{t("settingsModelsPage.baseUrlOptional")}</label>
                   <input
                     className="w-full rounded-md border p-2 bg-background text-sm outline-none focus:ring-1 focus:ring-primary"
                     placeholder={selectedProtocolMeta.defaultBaseUrl}
                     value={formData.baseUrl}
                     onChange={(e) => setFormData({ ...formData, baseUrl: e.target.value })}
                   />
-                  <p className="text-[11px] leading-5 text-muted-foreground">留空则使用该协议默认地址，可填写私有网关、代理或本地服务地址。</p>
+                  <p className="text-[11px] leading-5 text-muted-foreground">{t("settingsModelsPage.baseUrlHint")}</p>
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-semibold">API 密钥 {editingId ? "(留空则保持不变)" : "(可选)"}</label>
+                <label className="text-sm font-semibold">{editingId ? t("settingsModelsPage.apiKeyLabelKeep") : t("settingsModelsPage.apiKeyLabelOptional")}</label>
                 <input
                   type="password"
                   className="w-full rounded-md border p-2 bg-background text-sm outline-none focus:ring-1 focus:ring-primary font-mono"
-                  placeholder={formData.provider === "ollama" ? "无鉴权可留空" : "sk-..."}
+                  placeholder={formData.provider === "ollama" ? t("settingsModelsPage.noAuthCanBeEmpty") : "sk-..."}
                   value={formData.apiKey}
                   onChange={(e) => setFormData({ ...formData, apiKey: e.target.value })}
                 />
                 <p className="text-[11px] leading-5 text-muted-foreground">
-                  官方云服务通常需要填写；本地 Ollama 或内网网关未开启鉴权时可以留空。
+                  {t("settingsModelsPage.apiKeyHint")}
                 </p>
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-semibold flex items-center justify-between">
-                  <span>支持模型</span>
-                  <span className="text-[11px] font-normal text-muted-foreground">每行一个模型 ID</span>
+                  <span>{t("settingsModelsPage.supportedModels")}</span>
+                  <span className="text-[11px] font-normal text-muted-foreground">{t("settingsModelsPage.oneModelPerLine")}</span>
                 </label>
                 <textarea
                   required
@@ -278,7 +280,7 @@ export default function ModelProvidersPage() {
                   checked={formData.isActive}
                   onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
                 />
-                <span>启用此提供商</span>
+                <span>{t("settingsModelsPage.enableProvider")}</span>
               </label>
               <div className="pt-4 flex gap-3">
                 <button
@@ -286,14 +288,14 @@ export default function ModelProvidersPage() {
                   onClick={closeModal}
                   className="flex-1 rounded-md border py-2 text-sm font-medium hover:bg-muted"
                 >
-                  取消
+                  {t("common.cancel")}
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
                   className="flex-1 rounded-md bg-primary py-2 text-sm font-medium text-primary-foreground shadow disabled:opacity-50"
                 >
-                  {editingId ? "保存修改" : "保存配置"}
+                  {editingId ? t("settingsModelsPage.saveChanges") : t("settingsModelsPage.saveConfig")}
                 </button>
               </div>
             </form>

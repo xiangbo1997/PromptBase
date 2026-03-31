@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { Braces, Copy, Check, Eye } from "lucide-react";
+import { useI18n } from "@/components/providers/i18n-provider";
 
 interface VariableDefinition {
   name: string;
@@ -49,6 +50,7 @@ function parseVariablesFromContent(content: string): VariableDefinition[] {
 }
 
 export function TemplateVariables({ content, variables: backendVars }: TemplateVariablesProps) {
+  const { t } = useI18n();
   const [values, setValues] = useState<Record<string, string>>({});
   const [copied, setCopied] = useState(false);
 
@@ -96,8 +98,8 @@ export function TemplateVariables({ content, variables: backendVars }: TemplateV
         <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center mx-auto">
           <Braces className="h-6 w-6 text-muted-foreground/50" />
         </div>
-        <p className="text-sm font-medium">无模板变量</p>
-        <p className="text-xs text-muted-foreground">{"在提示词中使用 {{变量名}} 语法来定义模板"}</p>
+        <p className="text-sm font-medium">{t("prompt.noTemplateVariables")}</p>
+        <p className="text-xs text-muted-foreground">{t("prompt.templateHint")}</p>
       </div>
     );
   }
@@ -107,7 +109,7 @@ export function TemplateVariables({ content, variables: backendVars }: TemplateV
       <div className="space-y-4">
         <div className="flex items-center gap-2 text-sm font-semibold">
           <Braces className="h-4 w-4 text-primary" />
-          <span>变量赋值</span>
+          <span>{t("prompt.variableAssignments")}</span>
         </div>
         <div className="grid gap-3 bg-muted/30 p-4 rounded-lg border border-dashed">
           {variables.map((variable) => (
@@ -124,14 +126,14 @@ export function TemplateVariables({ content, variables: backendVars }: TemplateV
               {variable.type === "textarea" ? (
                 <textarea
                   className="w-full rounded-md border p-2 bg-background text-sm min-h-[80px] outline-none focus:ring-1 focus:ring-primary resize-none"
-                  placeholder={variable.defaultValue || `输入 ${variable.name} 的值...`}
+                  placeholder={variable.defaultValue || t("prompt.variableInputPlaceholder", { name: variable.name })}
                   value={values[variable.name] || ""}
                   onChange={(e) => setValues((prev) => ({ ...prev, [variable.name]: e.target.value }))}
                 />
               ) : (
                 <input
                   className="w-full rounded-md border p-2 bg-background text-sm outline-none focus:ring-1 focus:ring-primary"
-                  placeholder={variable.defaultValue || `输入 ${variable.name} 的值...`}
+                  placeholder={variable.defaultValue || t("prompt.variableInputPlaceholder", { name: variable.name })}
                   value={values[variable.name] || ""}
                   onChange={(e) => setValues((prev) => ({ ...prev, [variable.name]: e.target.value }))}
                 />
@@ -145,14 +147,14 @@ export function TemplateVariables({ content, variables: backendVars }: TemplateV
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-sm font-semibold">
             <Eye className="h-4 w-4 text-primary" />
-            <span>渲染预览</span>
+            <span>{t("prompt.renderedPreview")}</span>
           </div>
           <button
             onClick={handleCopy}
             className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground hover:text-primary transition-colors bg-muted/50 px-2 py-1 rounded"
           >
             {copied ? <Check className="h-3 w-3 text-green-500" /> : <Copy className="h-3 w-3" />}
-            {copied ? "已复制" : "复制结果"}
+            {copied ? t("prompt.copied") : t("prompt.copyResult")}
           </button>
         </div>
         <div className="bg-card rounded-lg p-4 text-sm whitespace-pre-wrap leading-relaxed min-h-[120px] border shadow-sm">

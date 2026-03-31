@@ -1,4 +1,5 @@
 import { useAuthStore } from "@/stores/auth";
+import { DEFAULT_LOCALE, LOCALE_STORAGE_KEY, resolveLocale, translate } from "@/lib/i18n";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001/api/v1";
 
@@ -24,8 +25,12 @@ export async function request<T>(path: string, options: RequestInit = {}): Promi
   }
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ message: "未知错误" }));
-    throw new Error(error.message ?? "请求失败");
+    const locale =
+      typeof window === "undefined"
+        ? DEFAULT_LOCALE
+        : resolveLocale(window.localStorage.getItem(LOCALE_STORAGE_KEY) ?? window.navigator.language);
+    const error = await response.json().catch(() => ({ message: translate(locale, "common.unknownError") }));
+    throw new Error(error.message ?? translate(locale, "common.requestFailed"));
   }
 
   const json = await response.json();

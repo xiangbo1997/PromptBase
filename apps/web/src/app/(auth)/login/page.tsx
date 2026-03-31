@@ -3,11 +3,13 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useLogin } from "@/hooks/use-auth";
+import { useI18n } from "@/components/providers/i18n-provider";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const { mutate: login, isPending, error } = useLogin();
+  const { t } = useI18n();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -17,8 +19,8 @@ export default function LoginPage() {
   return (
     <div className="space-y-6">
       <div className="space-y-2 text-center">
-        <h1 className="text-3xl font-bold">登录</h1>
-        <p className="text-muted-foreground">请输入您的邮箱和密码</p>
+        <h1 className="text-3xl font-bold">{t("auth.loginTitle")}</h1>
+        <p className="text-muted-foreground">{t("auth.loginSubtitle")}</p>
       </div>
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && (
@@ -27,7 +29,7 @@ export default function LoginPage() {
           </div>
         )}
         <div className="space-y-2">
-          <label className="text-sm font-medium">邮箱</label>
+          <label className="text-sm font-medium">{t("auth.email")}</label>
           <input
             className="w-full rounded-md border p-2 bg-background"
             type="email"
@@ -38,7 +40,7 @@ export default function LoginPage() {
           />
         </div>
         <div className="space-y-2">
-          <label className="text-sm font-medium">密码</label>
+          <label className="text-sm font-medium">{t("auth.password")}</label>
           <input
             className="w-full rounded-md border p-2 bg-background"
             type="password"
@@ -52,13 +54,13 @@ export default function LoginPage() {
           disabled={isPending}
           className="w-full rounded-md bg-primary p-2 text-primary-foreground font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
         >
-          {isPending ? "登录中..." : "登录"}
+          {isPending ? t("auth.signingIn") : t("auth.login")}
         </button>
       </form>
       <div className="text-center text-sm">
-        还没有账号？{" "}
+        {t("auth.noAccount")}{" "}
         <Link href="/register" className="text-primary hover:underline">
-          立即注册
+          {t("auth.registerNow")}
         </Link>
       </div>
     </div>

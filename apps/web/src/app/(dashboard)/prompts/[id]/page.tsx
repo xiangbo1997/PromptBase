@@ -15,8 +15,10 @@ import { AITestPanel } from "@/components/prompt/ai-test-panel";
 import { flattenFolderTree } from "@/lib/folder-tree";
 import { ArrowLeft, Save, Trash2, Settings, History, Braces, Zap } from "lucide-react";
 import Link from "next/link";
+import { useI18n } from "@/components/providers/i18n-provider";
 
 export default function EditPromptPage() {
+  const { t } = useI18n();
   const orgId = useAuthStore((s) => s.orgId) ?? "";
   const { id } = useParams();
   const router = useRouter();
@@ -52,28 +54,28 @@ export default function EditPromptPage() {
     updatePrompt(
       { title, description, folderId: folderId || undefined, content, tagIds: selectedTagIds },
       {
-        onSuccess: () => setFeedback({ tone: "success", message: "保存成功" }),
+        onSuccess: () => setFeedback({ tone: "success", message: t("editPromptPage.saveSuccess") }),
         onError: (error) => {
-          setFeedback({ tone: "error", message: error instanceof Error ? error.message : "保存失败，请重试" });
+          setFeedback({ tone: "error", message: error instanceof Error ? error.message : t("editPromptPage.saveFailedRetry") });
         },
       },
     );
   };
 
   const handleDelete = () => {
-    if (!window.confirm("确定要归档删除这个提示词吗？")) return;
+    if (!window.confirm(t("editPromptPage.deleteConfirm"))) return;
     deletePrompt(id as string, {
       onSuccess: () => router.push("/prompts"),
     });
   };
 
-  if (isLoading) return <div className="p-8 text-center text-muted-foreground">加载中...</div>;
+  if (isLoading) return <div className="p-8 text-center text-muted-foreground">{t("common.loading")}</div>;
 
   const tabs = [
-    { key: "props" as const, label: "属性", icon: Settings },
-    { key: "history" as const, label: "历史", icon: History },
-    { key: "variables" as const, label: "模板", icon: Braces },
-    { key: "test" as const, label: "测试", icon: Zap },
+    { key: "props" as const, label: t("editPromptPage.props"), icon: Settings },
+    { key: "history" as const, label: t("editPromptPage.history"), icon: History },
+    { key: "variables" as const, label: t("editPromptPage.template"), icon: Braces },
+    { key: "test" as const, label: t("editPromptPage.test"), icon: Zap },
   ];
 
   return (
@@ -84,7 +86,7 @@ export default function EditPromptPage() {
             <ArrowLeft className="h-5 w-5" />
           </Link>
           <div>
-            <h1 className="text-2xl font-bold">编辑提示词</h1>
+            <h1 className="text-2xl font-bold">{t("editPromptPage.title")}</h1>
             <p className="text-sm text-muted-foreground">{title}</p>
           </div>
         </div>
@@ -102,7 +104,7 @@ export default function EditPromptPage() {
             className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow hover:opacity-90 disabled:opacity-50"
           >
             <Save className="h-4 w-4" />
-            {isPending ? "保存中..." : "保存"}
+            {isPending ? t("common.saving") : t("common.save")}
           </button>
         </div>
       </div>
@@ -112,7 +114,7 @@ export default function EditPromptPage() {
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-4">
           <div className="space-y-2">
-            <label className="text-sm font-medium">内容</label>
+            <label className="text-sm font-medium">{t("editPromptPage.content")}</label>
             <PromptEditor value={content} onChange={(v) => setContent(v || "")} />
           </div>
         </div>
@@ -139,28 +141,28 @@ export default function EditPromptPage() {
             {activeTab === "props" && (
               <div className="space-y-5">
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">标题</label>
+                  <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{t("editPromptPage.titleLabel")}</label>
                   <input
                     className="w-full rounded-md border p-2.5 bg-background text-sm outline-none focus:ring-1 focus:ring-primary"
-                    placeholder="提示词标题"
+                    placeholder={t("editPromptPage.titlePlaceholder")}
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">描述</label>
+                  <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{t("editPromptPage.description")}</label>
                   <textarea
                     className="w-full rounded-md border p-2.5 bg-background text-sm min-h-[120px] outline-none focus:ring-1 focus:ring-primary resize-none"
-                    placeholder="简短描述该提示词的用途"
+                    placeholder={t("editPromptPage.descriptionPlaceholder")}
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                   />
                 </div>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between gap-3">
-                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">文件夹</label>
+                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{t("editPromptPage.folder")}</label>
                     <Link href="/settings/folders" className="text-xs normal-case tracking-normal text-primary hover:underline">
-                      管理文件夹
+                      {t("editPromptPage.manageFolders")}
                     </Link>
                   </div>
                   <select
@@ -168,7 +170,7 @@ export default function EditPromptPage() {
                     value={folderId}
                     onChange={(e) => setFolderId(e.target.value)}
                   >
-                    <option value="">根目录</option>
+                    <option value="">{t("common.rootFolder")}</option>
                     {flattenedFolders.map((f) => (
                       <option key={f.id} value={f.id}>
                         {"　".repeat(f.depth)}

@@ -6,6 +6,8 @@ import { useState, useRef, useEffect } from "react";
 import { useSearch } from "@/hooks/use-search";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import LocaleSwitcher from "@/components/layout/locale-switcher";
+import { useI18n } from "@/components/providers/i18n-provider";
 
 export default function Header() {
   const { user, logout } = useAuthStore();
@@ -15,6 +17,7 @@ export default function Header() {
   const [showResults, setShowResults] = useState(false);
   const { data: searchResults, isLoading } = useSearch(orgId, query);
   const containerRef = useRef<HTMLDivElement>(null);
+  const { t } = useI18n();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -38,7 +41,7 @@ export default function Header() {
       <div className="relative w-96" ref={containerRef}>
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <input
-          placeholder="搜索提示词... (Enter 开启全屏搜索)"
+          placeholder={t("common.searchPrompts")}
           className="w-full rounded-md bg-muted/50 py-1.5 pl-10 pr-4 text-sm outline-none ring-primary focus:ring-1"
           value={query}
           onChange={(e) => {
@@ -74,26 +77,27 @@ export default function Header() {
                     className="block text-center py-2 text-xs text-primary hover:underline"
                     onClick={() => setShowResults(false)}
                   >
-                    查看全部 {searchResults.length} 个结果
+                    {t("common.viewAllResults", { count: searchResults.length })}
                   </Link>
                 )}
               </div>
             ) : (
-              <div className="py-4 text-center text-sm text-muted-foreground">未找到相关提示词</div>
+              <div className="py-4 text-center text-sm text-muted-foreground">{t("common.noMatchingPrompts")}</div>
             )}
           </div>
         )}
       </div>
       <div className="flex items-center gap-4">
-        <button className="rounded-full p-2 hover:bg-muted relative" aria-label="通知">
+        <LocaleSwitcher />
+        <button className="rounded-full p-2 hover:bg-muted relative" aria-label={t("common.notifications")}>
           <Bell className="h-5 w-5" />
         </button>
         <div className="flex items-center gap-3 pl-2 border-l">
-          <span className="text-sm font-medium">{user?.name ?? "未登录"}</span>
+          <span className="text-sm font-medium">{user?.name ?? t("common.notLoggedIn")}</span>
           <button
             onClick={logout}
             className="rounded-md p-2 hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
-            aria-label="登出"
+            aria-label={t("common.logout")}
           >
             <LogOut className="h-4 w-4" />
           </button>

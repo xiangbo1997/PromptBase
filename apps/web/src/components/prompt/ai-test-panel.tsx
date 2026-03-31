@@ -7,6 +7,7 @@ import { useCreateTestRun, useTestRunStream } from "@/hooks/use-test-runs";
 import { cn } from "@promptbase/ui";
 import { MODEL_PROVIDER_PROTOCOL_META, type UUID } from "@promptbase/shared";
 import { MarkdownResult } from "@/components/prompt/markdown-result";
+import { useI18n } from "@/components/providers/i18n-provider";
 
 interface AITestPanelProps {
   orgId: UUID;
@@ -16,6 +17,7 @@ interface AITestPanelProps {
 }
 
 export function AITestPanel({ orgId, promptId, promptVersionId, variables }: AITestPanelProps) {
+  const { t } = useI18n();
   const { data: providers } = useModelProviders(orgId);
   const [selectedModel, setSelectedModel] = useState("");
   const [testRunId, setTestRunId] = useState<UUID | null>(null);
@@ -55,17 +57,17 @@ export function AITestPanel({ orgId, promptId, promptVersionId, variables }: AIT
       <div className="space-y-4">
         <div className="flex items-center gap-2 text-sm font-semibold">
           <Zap className="h-4 w-4 text-primary" />
-          <span>AI 测试运行</span>
+          <span>{t("prompt.aiTestRun")}</span>
         </div>
         <div className="grid gap-3 bg-muted/30 p-4 rounded-lg border border-dashed">
           <div className="space-y-2">
-            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">选择模型</label>
+            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{t("prompt.selectModel")}</label>
             <select
               className="w-full rounded-md border p-2 bg-background text-sm outline-none focus:ring-1 focus:ring-primary cursor-pointer"
               value={selectedModel}
               onChange={(e) => setSelectedModel(e.target.value)}
             >
-              <option value="">请选择模型...</option>
+              <option value="">{t("prompt.selectModelPlaceholder")}</option>
               {modelOptions.map((opt) => (
                 <option key={opt.value} value={opt.value}>{opt.label}</option>
               ))}
@@ -77,14 +79,14 @@ export function AITestPanel({ orgId, promptId, promptVersionId, variables }: AIT
             className="w-full flex items-center justify-center gap-2 rounded-md bg-primary py-2 text-sm font-medium text-primary-foreground shadow hover:opacity-90 disabled:opacity-50 transition-opacity"
           >
             {isCreating || isStreaming ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
-            {isStreaming ? "运行中..." : "运行测试"}
+            {isStreaming ? t("prompt.running") : t("prompt.runTest")}
           </button>
         </div>
       </div>
 
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <div className="text-sm font-semibold">输出结果</div>
+          <div className="text-sm font-semibold">{t("prompt.output")}</div>
           {metrics && (
             <div className="flex gap-3 text-[10px] text-muted-foreground font-medium">
               <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {metrics.latencyMs}ms</span>
@@ -109,7 +111,7 @@ export function AITestPanel({ orgId, promptId, promptVersionId, variables }: AIT
             <MarkdownResult
               content={chunks.join("")}
               isStreaming={isStreaming}
-              emptyText={'选择模型并点击"运行测试"'}
+              emptyText={t("prompt.selectModelAndRun")}
             />
           </div>
         </div>

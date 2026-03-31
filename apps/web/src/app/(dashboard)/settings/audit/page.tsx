@@ -4,18 +4,20 @@ import { useState } from "react";
 import { useAuthStore } from "@/stores/auth";
 import { useAuditLogs, type AuditLogsFilters } from "@/hooks/use-audit-logs";
 import { History, Filter, ChevronLeft, ChevronRight, Calendar } from "lucide-react";
+import { useI18n } from "@/components/providers/i18n-provider";
 
 export default function AuditLogPage() {
+  const { t } = useI18n();
   const orgId = useAuthStore((s) => s.orgId) ?? "";
   const [filters, setFilters] = useState<AuditLogsFilters>({ page: 1 });
   const { data, isLoading } = useAuditLogs(orgId, filters);
 
   const entityTypes = [
-    { label: "全部类型", value: "" },
-    { label: "提示词", value: "PROMPT" },
-    { label: "文件夹", value: "FOLDER" },
-    { label: "版本", value: "VERSION" },
-    { label: "成员", value: "MEMBER" },
+    { label: t("settingsAuditPage.allTypes"), value: "" },
+    { label: t("settingsAuditPage.prompt"), value: "PROMPT" },
+    { label: t("settingsAuditPage.folder"), value: "FOLDER" },
+    { label: t("settingsAuditPage.version"), value: "VERSION" },
+    { label: t("settingsAuditPage.member"), value: "MEMBER" },
   ];
 
   const page = filters.page ?? 1;
@@ -25,9 +27,9 @@ export default function AuditLogPage() {
       <div>
         <h1 className="text-2xl font-bold flex items-center gap-2">
           <History className="h-6 w-6 text-primary" />
-          审计日志
+          {t("settingsAuditPage.title")}
         </h1>
-        <p className="text-muted-foreground text-sm">追踪组织内的所有操作记录</p>
+        <p className="text-muted-foreground text-sm">{t("settingsAuditPage.subtitle")}</p>
       </div>
 
       <div className="flex flex-wrap items-center gap-4 p-4 rounded-xl border bg-card/50 shadow-sm">
@@ -51,7 +53,7 @@ export default function AuditLogPage() {
             className="bg-transparent text-sm outline-none"
             onChange={(e) => setFilters((prev) => ({ ...prev, from: e.target.value, page: 1 }))}
           />
-          <span className="text-muted-foreground">至</span>
+          <span className="text-muted-foreground">{t("settingsAuditPage.to")}</span>
           <input
             type="date"
             className="bg-transparent text-sm outline-none"
@@ -64,11 +66,11 @@ export default function AuditLogPage() {
         <table className="w-full text-sm text-left border-collapse">
           <thead>
             <tr className="bg-muted/50 border-b text-muted-foreground font-medium uppercase tracking-wider">
-              <th className="px-6 py-3">时间</th>
-              <th className="px-6 py-3">操作人</th>
-              <th className="px-6 py-3">行为</th>
-              <th className="px-6 py-3">对象类型</th>
-              <th className="px-6 py-3">对象 ID</th>
+              <th className="px-6 py-3">{t("settingsAuditPage.time")}</th>
+              <th className="px-6 py-3">{t("settingsAuditPage.actor")}</th>
+              <th className="px-6 py-3">{t("settingsAuditPage.action")}</th>
+              <th className="px-6 py-3">{t("settingsAuditPage.entityType")}</th>
+              <th className="px-6 py-3">{t("settingsAuditPage.entityId")}</th>
             </tr>
           </thead>
           <tbody className="divide-y">
@@ -84,7 +86,7 @@ export default function AuditLogPage() {
                   {new Date(log.createdAt).toLocaleString()}
                 </td>
                 <td className="px-6 py-4 font-medium">
-                  {log.actor?.displayName || log.actor?.email || "系统"}
+                  {log.actor?.displayName || log.actor?.email || t("common.system")}
                 </td>
                 <td className="px-6 py-4">
                   <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium text-xs border border-primary/20">
@@ -100,7 +102,7 @@ export default function AuditLogPage() {
       </div>
 
       <div className="flex items-center justify-between">
-        <div className="text-sm text-muted-foreground">共 {data?.total || 0} 条记录</div>
+        <div className="text-sm text-muted-foreground">{t("settingsAuditPage.totalRecords", { count: data?.total || 0 })}</div>
         <div className="flex items-center gap-2">
           <button
             disabled={page <= 1}
@@ -109,7 +111,7 @@ export default function AuditLogPage() {
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
-          <span className="text-sm px-2">第 {page} 页</span>
+          <span className="text-sm px-2">{t("common.pageNumber", { page })}</span>
           <button
             onClick={() => setFilters((prev) => ({ ...prev, page: page + 1 }))}
             className="p-2 rounded-md border bg-card hover:bg-muted disabled:opacity-50"
